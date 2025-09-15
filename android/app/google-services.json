@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "516458645301",
-    "project_id": "prime-leads-f3054",
-    "storage_bucket": "prime-leads-f3054.firebasestorage.app"
+    "project_number": "82514242339",
+    "project_id": "prime-leads-new",
+    "storage_bucket": "prime-leads-new.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:516458645301:android:12299acc985fe341e82e7c",
+        "mobilesdk_app_id": "1:82514242339:android:686b2733d14cc75f5f7a96",
         "android_client_info": {
           "package_name": "com.quick.primeleads"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCWY7Pbt3XyKDRhIcIq49qgsY0BeVtj398"
+          "current_key": "AIzaSyCun5hbxN8K7xVcwFRHiF1qrXPwGCeDPiQ"
         }
       ],
       "services": {
