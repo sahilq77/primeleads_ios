@@ -27,10 +27,10 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
   late Razorpay _razorpay;
 
   // Test Credentials (Replace with production credentials as needed)
-  // final String _keyId = 'rzp_live_R7zacfGtzhXGgs';
-  // final String _keySecret = 'uJvnRhRllfqNuqqticemkVKX';
-  final String _keyId = 'rzp_test_R7Swkdhjyig54S';
-  final String _keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
+  final String _keyId = 'rzp_live_R7zacfGtzhXGgs';
+  final String _keySecret = 'uJvnRhRllfqNuqqticemkVKX';
+  // final String _keyId = 'rzp_test_R7Swkdhjyig54S';
+  // final String _keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
 
   String transactionId = "RT${DateTime.now().millisecondsSinceEpoch}";
 

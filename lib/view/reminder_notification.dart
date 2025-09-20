@@ -99,7 +99,7 @@ class ReminderNotification {
 
     // Android initialization settings
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
 
     // iOS initialization settings
     const DarwinInitializationSettings initializationSettingsIOS =

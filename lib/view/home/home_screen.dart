@@ -100,20 +100,20 @@ class _HomeScreenState extends State<HomeScreen> {
       leadsController.fetchleadsList(context: context);
       notificationServices.firebaseInit(context);
       notificationServices.setInteractMessage(context);
-      // notificationServices.getDevicetoken().then((value) {
-      //   log('Device Token $value');
-      //   pushtoken.value = value;
-      //   // Call fetchBannerImages after token is available
-      //   appbannerController.fetchBannerImages(
-      //     context: context,
-      //     token: pushtoken.value,
-      //   );
-      // });
-      appbannerController.fetchBannerImages(
-        context: context,
-        token:
-            "e9YT98AsT3KGK750Bf9m66:APA91bG4PqSEYbK291kmv4wsVe1tUSwAyLdRhSMim13iTh9bYy8Q8mMmdMeXlUw00WyKiN9r72vGg-abEcR5cc636oy3mSBZa1oDqHlSdmsQQ8kPuJ-N86g",
-      );
+      notificationServices.getDevicetoken().then((value) {
+        log('Device Token $value');
+        pushtoken.value = value;
+        // Call fetchBannerImages after token is available
+        appbannerController.fetchBannerImages(
+          context: context,
+          token: pushtoken.value,
+        );
+      });
+      // appbannerController.fetchBannerImages(
+      //   context: context,
+      //   token:
+      //       "e9YT98AsT3KGK750Bf9m66:APA91bG4PqSEYbK291kmv4wsVe1tUSwAyLdRhSMim13iTh9bYy8Q8mMmdMeXlUw00WyKiN9r72vGg-abEcR5cc636oy3mSBZa1oDqHlSdmsQQ8kPuJ-N86g",
+      // );
       whyprimeleadsController.fetchwhyprimeleads(context: context);
       smartleadController.fetchSmartLead(context: context);
       testimonialController.fetchtestimonial(context: context);
