@@ -41,48 +41,49 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCAm_hELn8AMyG81oQxympbZX11pyYr92o',
-    appId: '1:516458645301:web:1d96d2b02fd4beafe82e7c',
-    messagingSenderId: '516458645301',
-    projectId: 'prime-leads-f3054',
-    authDomain: 'prime-leads-f3054.firebaseapp.com',
-    storageBucket: 'prime-leads-f3054.firebasestorage.app',
-    measurementId: 'G-9GKRBM3RSB',
+    apiKey: 'AIzaSyC-Xb-ggohuQplhI41heIk0ruhEak_131Q',
+    appId: '1:953341380653:web:6266563fe8458e3a2690a4',
+    messagingSenderId: '953341380653',
+    projectId: 'prime-leads-latest',
+    authDomain: 'prime-leads-latest.firebaseapp.com',
+    storageBucket: 'prime-leads-latest.firebasestorage.app',
+    measurementId: 'G-3CBDKQHDMW',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCWY7Pbt3XyKDRhIcIq49qgsY0BeVtj398',
-    appId: '1:516458645301:android:12299acc985fe341e82e7c',
-    messagingSenderId: '516458645301',
-    projectId: 'prime-leads-f3054',
-    storageBucket: 'prime-leads-f3054.firebasestorage.app',
+    apiKey: 'AIzaSyASpfR2Evft2KkHjrqNnaxWvfxxiqa6-Ww',
+    appId: '1:953341380653:android:a6b7461961526ffa2690a4',
+    messagingSenderId: '953341380653',
+    projectId: 'prime-leads-latest',
+    storageBucket: 'prime-leads-latest.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCtCzVh-e08lhFuhyArTj6-XmV8bnW_nPo',
-    appId: '1:516458645301:ios:7b8d5a8872f90551e82e7c',
-    messagingSenderId: '516458645301',
-    projectId: 'prime-leads-f3054',
-    storageBucket: 'prime-leads-f3054.firebasestorage.app',
-    iosBundleId: 'com.quick.primeLeads',
+    apiKey: 'AIzaSyAx6gx1WMgsXu3CG_O-5hLj5JUMLMgiooo',
+    appId: '1:953341380653:ios:ef288bd82332b63b2690a4',
+    messagingSenderId: '953341380653',
+    projectId: 'prime-leads-latest',
+    storageBucket: 'prime-leads-latest.firebasestorage.app',
+    iosBundleId: 'com.quick.primeleads',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCtCzVh-e08lhFuhyArTj6-XmV8bnW_nPo',
-    appId: '1:516458645301:ios:7b8d5a8872f90551e82e7c',
-    messagingSenderId: '516458645301',
-    projectId: 'prime-leads-f3054',
-    storageBucket: 'prime-leads-f3054.firebasestorage.app',
+    apiKey: 'AIzaSyAx6gx1WMgsXu3CG_O-5hLj5JUMLMgiooo',
+    appId: '1:953341380653:ios:ee4b2847a173927a2690a4',
+    messagingSenderId: '953341380653',
+    projectId: 'prime-leads-latest',
+    storageBucket: 'prime-leads-latest.firebasestorage.app',
     iosBundleId: 'com.quick.primeLeads',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCAm_hELn8AMyG81oQxympbZX11pyYr92o',
-    appId: '1:516458645301:web:15c67d3d9547b9cee82e7c',
-    messagingSenderId: '516458645301',
-    projectId: 'prime-leads-f3054',
-    authDomain: 'prime-leads-f3054.firebaseapp.com',
-    storageBucket: 'prime-leads-f3054.firebasestorage.app',
-    measurementId: 'G-KLSNJY7J5K',
+    apiKey: 'AIzaSyC-Xb-ggohuQplhI41heIk0ruhEak_131Q',
+    appId: '1:953341380653:web:cfa52edd107d168d2690a4',
+    messagingSenderId: '953341380653',
+    projectId: 'prime-leads-latest',
+    authDomain: 'prime-leads-latest.firebaseapp.com',
+    storageBucket: 'prime-leads-latest.firebasestorage.app',
+    measurementId: 'G-8XG0MKVRHF',
   );
+
 }
