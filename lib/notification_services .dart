@@ -119,110 +119,79 @@ class NotificationServices {
   }
 
   // Show local notification for foreground messages
+  // Maintain a set of processed message IDs
+  Set<String> processedMessageIds = {};
+
   Future<void> showNotification(RemoteMessage message) async {
     try {
-      const channel = AndroidNotificationChannel(
-        'text_channel_id', // Use a fixed channel ID
-        'Text Channel',
-        description: 'Your channel description',
-        importance: Importance.high,
-      );
+      // Log the received message
+      lg.log('Notification received: ${message.data}');
 
-      // Create the notification channel
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.createNotificationChannel(channel);
+      // Skip if message has already been processed
+      if (message.messageId != null &&
+          processedMessageIds.contains(message.messageId)) {
+        lg.log('Duplicate message detected, skipping: ${message.messageId}');
+        return;
+      }
 
-      // Fetch and log image URL from message data
-      String? imageUrl = message.data['image_url'];
-      lg.log('Image URL: $imageUrl'); // Log the image URL
+      // Add message ID to cache
+      if (message.messageId != null) {
+        processedMessageIds.add(message.messageId!);
+      }
+      lg.log('Processing FCM message ID: ${message.messageId}');
 
+      String? imageUrl = message.data['image'];
       String? imagePath;
 
-      AndroidNotificationDetails androidNotificationDetails;
+      // Download and save image with a unique filename
       if (imageUrl != null && imageUrl.isNotEmpty) {
-        lg.log('Attempting to download image from: $imageUrl');
-        // Download and save the image
         Uint8List? imageBytes = await loadImageFromUrl(imageUrl);
         if (imageBytes != null) {
-          lg.log(
-            'Image downloaded successfully, size: ${imageBytes.length} bytes',
-          );
           imagePath = await saveImageToFile(
             imageBytes,
-            'notification_image_${Random().nextInt(10000)}.jpg', // Unique filename
+            'notification_image_${message.messageId ?? Random().nextInt(10000)}.jpg',
           );
-          if (imagePath != null) {
-            lg.log('Image saved to: $imagePath');
-            androidNotificationDetails = AndroidNotificationDetails(
-              'text_channel_id',
-              'Text Channel',
-              channelDescription: 'Your channel description',
-              importance: Importance.high,
-              priority: Priority.high,
-              playSound: true,
-              styleInformation: BigPictureStyleInformation(
-                FilePathAndroidBitmap(imagePath),
-                hideExpandedLargeIcon: true,
-              ),
-              ticker: 'ticker',
-            );
-          } else {
-            lg.log('Failed to save image to file');
-            androidNotificationDetails = const AndroidNotificationDetails(
-              'text_channel_id',
-              'Text Channel',
-              channelDescription: 'Your channel description',
-              importance: Importance.high,
-              priority: Priority.high,
-              playSound: true,
-              styleInformation: BigTextStyleInformation(''),
-              ticker: 'ticker',
-            );
-          }
+          lg.log('Image saved to: $imagePath');
         } else {
-          lg.log('Failed to download image from URL');
-          androidNotificationDetails = const AndroidNotificationDetails(
-            'text_channel_id',
-            'Text Channel',
-            channelDescription: 'Your channel description',
-            importance: Importance.high,
-            priority: Priority.high,
-            playSound: true,
-            styleInformation: BigTextStyleInformation(''),
-            ticker: 'ticker',
-          );
+          lg.log('Failed to download image from: $imageUrl');
         }
-      } else {
-        lg.log('No image URL provided in message data');
-        androidNotificationDetails = const AndroidNotificationDetails(
-          'text_channel_id',
-          'Text Channel',
-          channelDescription: 'Your channel description',
+      }
+
+      AndroidNotificationDetails androidNotificationDetails;
+      if (imagePath != null) {
+        androidNotificationDetails = AndroidNotificationDetails(
+          'default_channel_id',
+          'text_channel',
+          channelDescription: 'Your channel Description',
           importance: Importance.high,
           priority: Priority.high,
           playSound: true,
-          styleInformation: BigTextStyleInformation(''),
-          ticker: 'ticker',
+          styleInformation: BigPictureStyleInformation(
+            FilePathAndroidBitmap(imagePath),
+            hideExpandedLargeIcon: true,
+          ),
+        );
+      } else {
+        androidNotificationDetails = const AndroidNotificationDetails(
+          'default_channel_id',
+          'text_channel',
+          channelDescription: 'Your channel Description',
+          importance: Importance.high,
+          priority: Priority.high,
+          playSound: true,
         );
       }
 
       DarwinNotificationDetails darwinNotificationDetails;
       if (imagePath != null) {
-        lg.log('Adding image attachment for iOS: $imagePath');
         darwinNotificationDetails = DarwinNotificationDetails(
           presentAlert: true,
-          presentBadge: true,
           presentSound: true,
           attachments: [DarwinNotificationAttachment(imagePath)],
         );
       } else {
-        lg.log('No image attachment for iOS');
         darwinNotificationDetails = const DarwinNotificationDetails(
           presentAlert: true,
-          presentBadge: true,
           presentSound: true,
         );
       }
@@ -232,26 +201,19 @@ class NotificationServices {
         iOS: darwinNotificationDetails,
       );
 
-      // Fetch title and body, prioritizing `message.notification`
-      String? title = message.notification?.title ?? message.data['title'];
-      String? body = message.notification?.body ?? message.data['body'];
-      lg.log('Notification title: $title, body: $body'); // Log title and body
+      // Use a unique notification ID
+      int notificationId =
+          message.messageId?.hashCode ?? Random().nextInt(10000);
 
-      // Display the notification if title or body is not null
-      if (title != null || body != null) {
-        await flutterLocalNotificationsPlugin.show(
-          Random().nextInt(
-            10000,
-          ), // Use a random ID to avoid notification overwrite
-          title ?? 'No Title',
-          body ?? 'No Body',
-          notificationDetails,
-          payload: message.data['page_link']?.toString() ?? '',
-        );
-        lg.log('Notification shown: $title - $body');
-      } else {
-        lg.log('No title or body provided, skipping notification');
-      }
+      await flutterLocalNotificationsPlugin.show(
+        notificationId,
+        message.notification?.title ?? 'No title',
+        message.notification?.body ?? 'No body',
+        notificationDetails,
+      );
+      lg.log(
+        'Notification shown with ID: $notificationId, title: ${message.notification?.title}, body: ${message.notification?.body}',
+      );
     } catch (e) {
       lg.log('Error showing notification: $e');
     }
