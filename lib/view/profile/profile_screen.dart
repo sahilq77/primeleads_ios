@@ -187,8 +187,8 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         ListTile(
                           leading: SvgPicture.asset(
-                            AppImages.userIcon,
-                            color: AppColors.grey,
+                            AppImages.crownIcon,
+                            color: AppColors.grey.withOpacity(0.8),
                             height: 25,
                             width: 25,
                           ),

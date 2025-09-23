@@ -886,28 +886,28 @@ class _LeadsScreenState extends State<LeadsScreen> {
                           ),
                           readOnly: true,
                         ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            labelText: 'Reminder Before',
-                            border: OutlineInputBorder(),
-                          ),
-                          value: selectedReminderOption,
-                          items:
-                              ['1 mins', "Don't remind"]
-                                  .map(
-                                    (option) => DropdownMenuItem(
-                                      value: option,
-                                      child: Text(option),
-                                    ),
-                                  )
-                                  .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedReminderOption = value;
-                            });
-                          },
-                        ),
+                        // const SizedBox(height: 16),
+                        // DropdownButtonFormField<String>(
+                        //   decoration: const InputDecoration(
+                        //     labelText: 'Reminder Before',
+                        //     border: OutlineInputBorder(),
+                        //   ),
+                        //   value: selectedReminderOption,
+                        //   items:
+                        //       ['1 mins', "Don't remind"]
+                        //           .map(
+                        //             (option) => DropdownMenuItem(
+                        //               value: option,
+                        //               child: Text(option),
+                        //             ),
+                        //           )
+                        //           .toList(),
+                        //   onChanged: (value) {
+                        //     setState(() {
+                        //       selectedReminderOption = value;
+                        //     });
+                        //   },
+                        // ),
                         const SizedBox(height: 16),
                         Center(
                           child: SizedBox(

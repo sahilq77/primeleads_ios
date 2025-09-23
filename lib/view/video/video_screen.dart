@@ -117,214 +117,219 @@ class _VideoListScreenState extends State<VideoListScreen> {
             child: Divider(color: Color(0xFFDADADA), thickness: 2, height: 0),
           ),
         ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Learn. Apply. Grow Your Business',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Learn. Apply. Grow Your Business',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-            ),
-            Card(
-              elevation: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Row(
-                  children: [
-                    Column(
-                      children: [
-                        SvgPicture.asset(
-                          AppImages.whatsappgreenlIcon,
-                          height: 35,
-                          width: 35,
-                        ),
-                        const SizedBox(height: 10),
-                        GestureDetector(
-                          onTap: _openWhatsApp, // Call _openWhatsApp on tap
-                          child: Container(
-                            padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF44C554),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Join Now',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.white,
+              Card(
+                elevation: 1,
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                    children: [
+                      Column(
+                        children: [
+                          SvgPicture.asset(
+                            AppImages.whatsappgreenlIcon,
+                            height: 35,
+                            width: 35,
+                          ),
+                          const SizedBox(height: 10),
+                          GestureDetector(
+                            onTap: _openWhatsApp, // Call _openWhatsApp on tap
+                            child: Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF44C554),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Join Now',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.white,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Join Our WhatsApp Community',
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'Connect with 1000+ active coaches.\nLearn, share,& grow together.',
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: screenWidth * 0.02),
-            Expanded(
-              child: Obx(() {
-                if (videoController.isLoading.value &&
-                    videoController.videoList.isEmpty) {
-                  return const VideoListShimmer();
-                } else if (videoController.videoList.isEmpty) {
-                  return const NoDataScreen();
-                } else {
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      await videoController.refreshVideos(context);
-                    },
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount:
-                          videoController.videoList.length +
-                          (videoController.isFetchingMore.value ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == videoController.videoList.length) {
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        }
-                        final video = videoController.videoList[index];
-                        final thumbnailUrl =
-                            YouTubeUtility.getYouTubeThumbnail(
-                              video.videoLink,
-                            ) ??
-                            'https://via.placeholder.com/150';
-                        log(thumbnailUrl);
-                        return GestureDetector(
-                          onTap: () {
-                            if (Get.currentRoute != AppRoutes.videoDetail) {
-                              Get.toNamed(
-                                AppRoutes.videoDetail,
-                                arguments: video,
-                              );
-                            }
-                          },
-                          child: Card(
-                            elevation: 0,
-                            child: Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(5.0),
-                                    child: CachedNetworkImage(
-                                      imageUrl: thumbnailUrl,
-                                      width: 150,
-                                      height: 110,
-                                      fit: BoxFit.cover,
-                                      placeholder:
-                                          (context, url) => Shimmer.fromColors(
-                                            baseColor: Colors.grey[300]!,
-                                            highlightColor: Colors.grey[100]!,
-                                            child: Container(
-                                              width: 60,
-                                              height: 60,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                      errorWidget:
-                                          (context, url, error) =>
-                                              SvgPicture.asset(
-                                                AppImages.defaultVideo,
-                                                width: 60,
-                                                height: 60,
-                                                fit: BoxFit.cover,
-                                              ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          video.title,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            color: AppColors.defaultblack,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        ReadMoreText(
-                                          video.description,
-                                          trimMode: TrimMode.Line,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 12,
-                                          ),
-                                          trimLines: 2,
-                                          colorClickableText: Colors.pink,
-                                          trimCollapsedText: 'Learn more',
-                                          trimExpandedText: 'Show less',
-                                          moreStyle: GoogleFonts.poppins(
-                                            fontSize: 12,
-                                            color: AppColors.primary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        SizedBox(height: screenHeight * 0.02),
-                                        Text(
-                                          'Date: ${video.date} | Time: ${video.time}',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 12,
-                                            color: AppColors.textDark,
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Join Our WhatsApp Community',
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ),
-                        );
+                            const SizedBox(height: 5),
+                            Text(
+                              'Connect with 1000+ active coaches.\nLearn, share,& grow together.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: screenWidth * 0.02),
+              Expanded(
+                child: Obx(() {
+                  if (videoController.isLoading.value &&
+                      videoController.videoList.isEmpty) {
+                    return const VideoListShimmer();
+                  } else if (videoController.videoList.isEmpty) {
+                    return const NoDataScreen();
+                  } else {
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        await videoController.refreshVideos(context);
                       },
-                    ),
-                  );
-                }
-              }),
-            ),
-          ],
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount:
+                            videoController.videoList.length +
+                            (videoController.isFetchingMore.value ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == videoController.videoList.length) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+                          final video = videoController.videoList[index];
+                          final thumbnailUrl =
+                              YouTubeUtility.getYouTubeThumbnail(
+                                video.videoLink,
+                              ) ??
+                              'https://via.placeholder.com/150';
+                          log(thumbnailUrl);
+                          return GestureDetector(
+                            onTap: () {
+                              if (Get.currentRoute != AppRoutes.videoDetail) {
+                                Get.toNamed(
+                                  AppRoutes.videoDetail,
+                                  arguments: video,
+                                );
+                              }
+                            },
+                            child: Card(
+                              elevation: 0,
+                              child: Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(5.0),
+                                      child: CachedNetworkImage(
+                                        imageUrl: thumbnailUrl,
+                                        width: 150,
+                                        height: 110,
+                                        fit: BoxFit.cover,
+                                        placeholder:
+                                            (context, url) =>
+                                                Shimmer.fromColors(
+                                                  baseColor: Colors.grey[300]!,
+                                                  highlightColor:
+                                                      Colors.grey[100]!,
+                                                  child: Container(
+                                                    width: 60,
+                                                    height: 60,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                        errorWidget:
+                                            (context, url, error) =>
+                                                SvgPicture.asset(
+                                                  AppImages.defaultVideo,
+                                                  width: 60,
+                                                  height: 60,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            video.title,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              color: AppColors.defaultblack,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          ReadMoreText(
+                                            video.description,
+                                            trimMode: TrimMode.Line,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                            ),
+                                            trimLines: 2,
+                                            colorClickableText: Colors.pink,
+                                            trimCollapsedText: 'Learn more',
+                                            trimExpandedText: 'Show less',
+                                            moreStyle: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                              color: AppColors.primary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          SizedBox(height: screenHeight * 0.02),
+                                          Text(
+                                            'Date: ${video.date} | Time: ${video.time}',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                              color: AppColors.textDark,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  }
+                }),
+              ),
+            ],
+          ),
         ),
         bottomNavigationBar: const CustomBottomBar(),
       ),
