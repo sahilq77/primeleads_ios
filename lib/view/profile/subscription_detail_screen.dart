@@ -10,6 +10,7 @@ import '../../controller/profile/profile_controller.dart';
 import '../../model/profile/get_profile_response.dart';
 import '../../utility/app_colors.dart';
 import '../../utility/app_images.dart';
+import '../../utility/app_routes.dart';
 
 class SubscriptionDetailScreen extends StatefulWidget {
   @override
@@ -17,6 +18,7 @@ class SubscriptionDetailScreen extends StatefulWidget {
 }
 
 class _SubscriptionDetailScreen extends State<SubscriptionDetailScreen> {
+  final profileController = Get.put(ProfileController());
   final bottomController = Get.put(BottomNavigationController());
 
   int _selectedIndex =
@@ -72,7 +74,46 @@ class _SubscriptionDetailScreen extends State<SubscriptionDetailScreen> {
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(children: [SubscriptionCard(package: detail!)]),
+          child: Column(
+            children: [
+              SubscriptionCard(package: detail!),
+
+              SizedBox(height: 10),
+              SizedBox(
+                child:
+                    profileController.userProfileList.first.isSelectedCities ==
+                            "0"
+                        ? ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            minimumSize: Size(double.infinity, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () async {
+                            await Get.toNamed(
+                              AppRoutes.selectLocation,
+                              arguments: {
+                                'subscription_id':
+                                    profileController
+                                        .userProfileList
+                                        .first
+                                        .subscriptionId,
+                                'transaction':
+                                    profileController
+                                        .userProfileList
+                                        .first
+                                        .transactioId,
+                              },
+                            );
+                          },
+                          child: Text("Please select cities to get leads"),
+                        )
+                        : SizedBox.shrink(),
+              ),
+            ],
+          ),
         ),
       ),
     );

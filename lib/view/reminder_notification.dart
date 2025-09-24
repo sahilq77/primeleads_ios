@@ -4,9 +4,7 @@ import 'dart:developer' as lg;
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -18,23 +16,6 @@ void backgroundNotificationHandler(NotificationResponse response) {
   lg.log(
     'ReminderNotification: Background notification received, payload: ${response.payload}',
   );
-  // Vibrate.canVibrate.then((canVibrate) {
-  //   if (canVibrate) {
-  //     Vibrate.vibrateWithPauses(const [
-  //       Duration(milliseconds: 0),
-  //       Duration(milliseconds: 1000),
-  //       Duration(milliseconds: 500),
-  //       Duration(milliseconds: 1000),
-  //     ]);
-  //     lg.log(
-  //       'ReminderNotification: Vibration triggered for background notification, ID: ${response.id}',
-  //     );
-  //   } else {
-  //     lg.log(
-  //       'ReminderNotification: Vibration not available for background notification',
-  //     );
-  //   }
-  // });
 }
 
 class ReminderNotification {
@@ -54,36 +35,6 @@ class ReminderNotification {
 
   // Timer for updating remaining time
   Timer? _timer;
-
-  // Check if a custom sound is available
-  Future<bool> _checkCustomSoundAvailability(
-    String soundFile,
-    String platform,
-  ) async {
-    try {
-      if (platform == 'android') {
-        const channel = MethodChannel('com.quick.primeleads/notification');
-        final exists =
-            await channel.invokeMethod<bool>('checkRawResource', {
-              'sound': soundFile,
-            }) ??
-            false;
-        lg.log(
-          'ReminderNotification: Custom sound $soundFile availability check ($platform): $exists',
-        );
-        return exists;
-      } else if (platform == 'ios') {
-        // iOS: Assume sound is available if added to Runner
-        return true;
-      }
-      return false;
-    } catch (e) {
-      lg.log(
-        'ReminderNotification: Error checking custom sound $soundFile availability ($platform): $e',
-      );
-      return false;
-    }
-  }
 
   Future<void> init() async {
     lg.log('ReminderNotification: Initializing notifications');
@@ -115,23 +66,13 @@ class ReminderNotification {
           iOS: initializationSettingsIOS,
         );
 
-    // Create notification channel with custom sound and vibration
-    final soundAvailableAndroid =
-        Platform.isAndroid
-            ? await _checkCustomSoundAvailability('buzzer', 'android')
-            : true;
-    final soundAvailableIOS =
-        Platform.isIOS
-            ? await _checkCustomSoundAvailability('buzzer.caf', 'ios')
-            : true;
-
+    // Create notification channel
     final channel = AndroidNotificationChannel(
       'lead_reminder_channel',
       'Lead Reminders',
       description: 'Channel for lead reminder notifications',
       importance: Importance.max,
       playSound: true,
-      sound: const RawResourceAndroidNotificationSound('buzzer'),
       enableVibration: true,
       vibrationPattern: Int64List.fromList(const [0, 1000, 500, 1000]),
       showBadge: true,
@@ -144,7 +85,7 @@ class ReminderNotification {
         >()
         ?.createNotificationChannel(channel);
     lg.log(
-      'ReminderNotification: Android notification channel created: lead_reminder_channel, sound: ${soundAvailableAndroid ? 'buzzer.mp3' : 'default system sound'}',
+      'ReminderNotification: Android notification channel created: lead_reminder_channel',
     );
 
     // Initialize plugin with background handler
@@ -154,23 +95,6 @@ class ReminderNotification {
         lg.log(
           'ReminderNotification: Notification tapped, payload: ${response.payload}',
         );
-        // Vibrate.canVibrate.then((canVibrate) {
-        //   if (canVibrate) {
-        //     Vibrate.vibrateWithPauses(const [
-        //       Duration(milliseconds: 0),
-        //       Duration(milliseconds: 1000),
-        //       Duration(milliseconds: 500),
-        //       Duration(milliseconds: 1000),
-        //     ]);
-        //     lg.log(
-        //       'ReminderNotification: Vibration triggered for foreground notification, ID: ${response.id}',
-        //     );
-        //   } else {
-        //     lg.log(
-        //       'ReminderNotification: Vibration not available for foreground notification',
-        //     );
-        //   }
-        // });
       },
       onDidReceiveBackgroundNotificationResponse: backgroundNotificationHandler,
     );
@@ -189,10 +113,6 @@ class ReminderNotification {
     } else if (Platform.isIOS) {
       await requestIOSNotificationPermission();
     }
-
-    // Check vibration capability
-    // final canVibrate = await Vibrate.canVibrate;
-    // lg.log('ReminderNotification: Vibration capability: $canVibrate');
 
     _startTimer();
   }
@@ -327,16 +247,6 @@ class ReminderNotification {
       final tzScheduledDate = tz.TZDateTime.from(scheduledDate, tz.local);
       lg.log('ReminderNotification: TZ Scheduled Date: $tzScheduledDate');
 
-      // Check custom sound availability
-      final soundAvailableAndroid =
-          Platform.isAndroid
-              ? await _checkCustomSoundAvailability('buzzer', 'android')
-              : true;
-      final soundAvailableIOS =
-          Platform.isIOS
-              ? await _checkCustomSoundAvailability('buzzer.caf', 'ios')
-              : true;
-
       final AndroidNotificationDetails androidNotificationDetails =
           AndroidNotificationDetails(
             'lead_reminder_channel',
@@ -348,10 +258,6 @@ class ReminderNotification {
             enableVibration: true,
             vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
             playSound: true,
-            sound:
-                soundAvailableAndroid
-                    ? const RawResourceAndroidNotificationSound('buzzer')
-                    : null,
             audioAttributesUsage: AudioAttributesUsage.notificationEvent,
           );
 
@@ -360,7 +266,6 @@ class ReminderNotification {
             presentAlert: true,
             presentBadge: true,
             presentSound: true,
-            sound: soundAvailableIOS ? 'buzzer.caf' : null,
           );
 
       final NotificationDetails notificationDetails = NotificationDetails(
@@ -383,8 +288,6 @@ class ReminderNotification {
         notificationDetails,
         androidScheduleMode: androidScheduleMode,
         matchDateTimeComponents: DateTimeComponents.dateAndTime,
-        // uiLocalNotificationDateInterpretation:
-        //     UILocalNotificationDateInterpretation.absoluteTime,
         payload: 'lead_reminder_$id',
       );
 
@@ -420,15 +323,6 @@ class ReminderNotification {
         'ReminderNotification: Showing immediate notification: ID=$id, Title=$title, Body=$body',
       );
 
-      final soundAvailableAndroid =
-          Platform.isAndroid
-              ? await _checkCustomSoundAvailability('buzzer', 'android')
-              : true;
-      final soundAvailableIOS =
-          Platform.isIOS
-              ? await _checkCustomSoundAvailability('buzzer.caf', 'ios')
-              : true;
-
       final AndroidNotificationDetails androidNotificationDetails =
           AndroidNotificationDetails(
             'lead_reminder_channel',
@@ -440,10 +334,6 @@ class ReminderNotification {
             enableVibration: true,
             vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
             playSound: true,
-            sound:
-                soundAvailableAndroid
-                    ? const RawResourceAndroidNotificationSound('buzzer')
-                    : null,
             audioAttributesUsage: AudioAttributesUsage.notificationEvent,
           );
 
@@ -452,7 +342,6 @@ class ReminderNotification {
             presentAlert: true,
             presentBadge: true,
             presentSound: true,
-            sound: soundAvailableIOS ? 'buzzer.caf' : null,
           );
 
       final NotificationDetails notificationDetails = NotificationDetails(

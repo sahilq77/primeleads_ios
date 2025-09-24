@@ -47,6 +47,8 @@ class ProfileData {
   String? sectorName;
   String? subscriptionId;
   SubscriptionDetail? subscriptionDetail;
+  String? transactioId;
+  String? isSelectedCities;
 
   ProfileData({
     this.id,
@@ -59,6 +61,8 @@ class ProfileData {
     this.sectorName,
     this.subscriptionId,
     this.subscriptionDetail,
+    this.transactioId,
+    this.isSelectedCities,
   });
 
   factory ProfileData.fromJson(Map<String, dynamic> json) => ProfileData(
@@ -83,6 +87,8 @@ class ProfileData {
               tags: "",
               bulletPoints: [],
             ),
+    transactioId: json["transaction_no"] as String? ?? "",
+    isSelectedCities: json["is_selected_cities"] as String? ?? "",
   );
 
   Map<String, dynamic> toJson() => {

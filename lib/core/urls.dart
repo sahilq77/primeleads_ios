@@ -68,4 +68,6 @@ class Networkutility {
   static int sendOtpApi = 31;
   static String verifyOtp = "${baseUrl + "verify_otp"}";
   static int verifyOtpApi = 32;
+  static String setPayment = "${baseUrl + "set_payment"}";
+  static int setPaymentApi = 33;
 }

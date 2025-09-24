@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:prime_leads/model/subscription/get_subscription_response.dart';
 import 'package:prime_leads/utility/app_routes.dart';
 import 'package:prime_leads/utility/app_utility.dart';
+import '../../controller/subscription/set_payment_controller.dart';
 
 class RazorpayGateway extends StatefulWidget {
   final num totalPayable;
@@ -25,10 +26,9 @@ class RazorpayGateway extends StatefulWidget {
 
 class _RazorpayGatewayState extends State<RazorpayGateway> {
   late Razorpay _razorpay;
+  final SetPaymentController _setPaymentController = Get.put(SetPaymentController());
 
   // Test Credentials (Replace with production credentials as needed)
-  // final String _keyId = 'rzp_live_R7zacfGtzhXGgs';
-  // final String _keySecret = 'uJvnRhRllfqNuqqticemkVKX';
   final String _keyId = 'rzp_test_R7Swkdhjyig54S';
   final String _keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
 
@@ -141,26 +141,54 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
     }
   }
 
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    debugPrint('[RazorpayGateway] Payment Success: ${response.paymentId}');
-    debugPrint('[RazorpayGateway] Navigating to payment receipt with:');
-    debugPrint('[RazorpayGateway] transactionId: $transactionId');
-    debugPrint('[RazorpayGateway] subscriptionId: ${widget.subscriptionId}');
-    debugPrint('[RazorpayGateway] amount: ${widget.finalOrderPrice}');
-    Get.toNamed(
-      AppRoutes.paymentRieceipt,
-      arguments: {
-        'transactionId': transactionId,
-        'subscriptionId': widget.subscriptionId,
-        'amount': widget.finalOrderPrice,
-      },
-    );
+  Future<bool> _callSetPaymentApi(String paymentStatus) async {
+    try {
+      await _setPaymentController.setPayment(
+        context: context,
+        subscriptionid: widget.subscriptionId,
+        paymentStaus: paymentStatus,
+        transactionID: transactionId,
+      );
+      // Check if the API call was successful by inspecting isLoading
+      return !_setPaymentController.isLoading.value;
+    } catch (e) {
+      debugPrint('[RazorpayGateway] Error in setPayment API: $e');
+      return false;
+    }
   }
 
-  void _handlePaymentError(PaymentFailureResponse response) {
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    debugPrint('[RazorpayGateway] Payment Success: ${response.paymentId}');
+    debugPrint('[RazorpayGateway] Calling setPayment API with:');
+    debugPrint('[RazorpayGateway] transactionId: $transactionId');
+    debugPrint('[RazorpayGateway] subscriptionId: ${widget.subscriptionId}');
+    debugPrint('[RazorpayGateway] paymentStatus: 1');
+
+    // Call setPayment API with paymentStatus "1" (success)
+    bool apiSuccess = await _callSetPaymentApi("1");
+
+    if (apiSuccess) {
+      // Navigate to payment receipt only if setPayment API call is successful
+      Get.toNamed(
+        AppRoutes.paymentRieceipt,
+        arguments: {
+          'transactionId': transactionId,
+          'subscriptionId': widget.subscriptionId,
+          'amount': widget.finalOrderPrice,
+        },
+      );
+    } else {
+      debugPrint('[RazorpayGateway] setPayment API call failed, not navigating');
+      // Error snackbar is already shown by SetPaymentController
+    }
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) async {
     debugPrint(
       '[RazorpayGateway] Payment Error: ${response.code} | ${response.message}',
     );
+    // Call setPayment API with paymentStatus "0" (failed/canceled)
+    await _callSetPaymentApi("0");
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _showErrorSnackBar(response.message ?? "Payment failed");
     });
@@ -193,17 +221,26 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            CircularProgressIndicator(),
-            SizedBox(height: 20),
-            Text('Processing Payment...'),
-          ],
-        ),
-      ),
-    );
+    return Obx(() => Scaffold(
+          body: Center(
+            child: _setPaymentController.isLoading.value
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 20),
+                      Text('Processing Payment...'),
+                    ],
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 20),
+                      Text('Initiating Payment...'),
+                    ],
+                  ),
+          ),
+        ));
   }
 }

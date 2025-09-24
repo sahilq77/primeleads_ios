@@ -447,6 +447,7 @@ class SubscriptionCard extends StatelessWidget {
                               ),
                             ),
                             child: CachedNetworkImage(
+                              
                               imageUrl: package.image,
                               fit: BoxFit.cover,
                               width: 20,

@@ -35,6 +35,7 @@ import '../../model/profile/get_update_response.dart';
 import '../../model/reminder/get_calender_response.dart';
 import '../../model/reminder/get_reminder_list_response.dart';
 import '../../model/smarter_lead/get_smarter_lead_response.dart';
+import '../../model/subscription/set_payments_response.dart';
 import '../../model/subscription/submit_subscription_response.dart';
 import '../../model/terms/get_terms_response.dart';
 import '../../model/testimonial/testimonial_response.dart';
@@ -53,7 +54,7 @@ class Networkcall {
 
   Future<List<Object?>?> postMethod(
     int requestCode,
-    String url,  
+    String url,
     String body,
     BuildContext context,
   ) async {
@@ -91,7 +92,9 @@ class Networkcall {
 
       var data = response.body;
       if (response.statusCode == 200) {
-        log("url : $url \n Request Code : $requestCode \n body : $body \n Response : $data");
+        log(
+          "url : $url \n Request Code : $requestCode \n body : $body \n Response : $data",
+        );
 
         // Wrap response in [] for consistency
         String str = "[${response.body}]";
@@ -191,7 +194,9 @@ class Networkcall {
           case 32:
             final verifyOTP = getVerifyOtpResponseFromJson(str);
             return verifyOTP;
-
+          case 33:
+            final setPayment = getSetPaymentResponseFromJson(str);
+            return setPayment;
           default:
             log("Invalid request code: $requestCode");
             throw ParseException('Unhandled request code: $requestCode');

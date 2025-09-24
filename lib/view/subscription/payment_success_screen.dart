@@ -209,7 +209,8 @@ class _PaymentReceiptDetailsScreenState
                                 ),
                                 SizedBox(
                                   width: double.infinity,
-                                  child: ElevatedButton.icon(
+                                  height: 50,
+                                  child: ElevatedButton(
                                     onPressed: () async {
                                       debugPrint(
                                         '[PaymentReceiptDetailsScreen] Download button pressed',
@@ -246,24 +247,33 @@ class _PaymentReceiptDetailsScreenState
                                         },
                                       );
                                     },
-                                    icon: SvgPicture.asset(
-                                      AppImages.downloadIcon,
-                                      width: 20,
-                                      height: 20,
-                                    ),
-                                    label: const Text(
-                                      'Go to City Selection',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.textDark,
-                                      ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        const Text(
+                                          'Go to City Selection',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.white,
+                                          ),
+                                        ),
+                                        SizedBox(width: 5),
+                                        Icon(
+                                          Icons.arrow_forward,
+                                          size: 20,
+                                          color: AppColors.white,
+                                        ),
+                                      ],
                                     ),
                                     style: ElevatedButton.styleFrom(
-                                      foregroundColor: Colors.black,
-                                      backgroundColor: Colors.white,
-                                      side: const BorderSide(
-                                        color: Color(0xFFE5E7EB),
-                                      ),
+                                      foregroundColor: Colors.white,
+                                      backgroundColor: AppColors.primaryTeal,
+                                      // side: const BorderSide(
+                                      //   color: Color(0xFFE5E7EB),
+                                      // ),
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 24,
                                         vertical: 12,
