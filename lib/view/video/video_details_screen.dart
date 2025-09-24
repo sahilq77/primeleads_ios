@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Added for SystemChrome
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:prime_leads/model/video/get_training_video_response.dart';
@@ -28,12 +29,11 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
     // Extract YouTube video ID
     String? videoId = _getYoutubeVideoId(video.videoLink);
     if (videoId == null) {
-      // Initialize a dummy controller to avoid LateInitializationError
       _controller = YoutubePlayerController.fromVideoId(
-        videoId: 'invalid', // Dummy ID, won't be used
+        videoId: 'invalid',
         params: const YoutubePlayerParams(
           mute: false,
-          showControls: false, // Hide controls for invalid video
+          showControls: false,
           showFullscreenButton: false,
           loop: false,
           enableCaption: false,
@@ -46,27 +46,62 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
       return;
     }
 
-    // Initialize YouTube player controller for valid video ID
+    // Initialize YouTube player controller
     try {
       _controller = YoutubePlayerController.fromVideoId(
         videoId: videoId,
         params: const YoutubePlayerParams(
           mute: false,
           showControls: true,
-          showFullscreenButton: true,
+          showFullscreenButton: false,
           loop: false,
           enableCaption: true,
           captionLanguage: 'en',
           playsInline: true,
         ),
       );
+
+      // Listen for player state changes to detect play button click
+      _controller.listen((event) {
+        if (event.playerState == PlayerState.playing) {
+          // Video is playing, set to landscape
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ]);
+        } else if (event.playerState == PlayerState.paused ||
+            event.playerState == PlayerState.ended) {
+          // Video is paused or ended, restore to portrait
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown,
+          ]);
+        }
+      });
+
+      // Listen for fullscreen toggle
+      _controller.onFullscreenChange = (isFullscreen) {
+        if (isFullscreen) {
+          // Force landscape in fullscreen
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ]);
+        } else {
+          // Restore portrait when exiting fullscreen
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown,
+          ]);
+        }
+      };
+
       setState(() {
         _isLoading = false;
       });
     } catch (e) {
-      // Initialize a dummy controller in case of other errors
       _controller = YoutubePlayerController.fromVideoId(
-        videoId: 'invalid', // Dummy ID
+        videoId: 'invalid',
         params: const YoutubePlayerParams(
           mute: false,
           showControls: false,
@@ -98,6 +133,11 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
 
   @override
   void dispose() {
+    // Reset orientation to default (portrait) when leaving the screen
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     _controller.close();
     super.dispose();
   }
@@ -259,7 +299,7 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
               ),
             ),
           ),
-          bottomNavigationBar: const CustomBottomBar(),
+          // bottomNavigationBar: const CustomBottomBar(),
         );
       },
     );
