@@ -91,15 +91,15 @@ class ProfileController extends GetxController {
               isSelectedCities: users.isSelectedCities,
             ),
           );
-          if (users.isSelectedCities == "0") {
-            Get.snackbar(
-              onTap: (snack) => Get.toNamed(AppRoutes.profile),
-              'Hello',
-              'Go to subscription detail and Please select cities to get leads',
-              backgroundColor: AppColors.primary,
-              colorText: Colors.white,
-            );
-          }
+          // if (users.transactioId != null) {
+          //   Get.snackbar(
+          //     onTap: (snack) => Get.toNamed(AppRoutes.profile),
+          //     'Hello, ${users.fullName}',
+          //     'Go to subscription detail and please select cities to get leads',
+          //     backgroundColor: AppColors.primary,
+          //     colorText: Colors.white,
+          //   );
+          // }
         } else {
           errorMessage.value =
               'Failed to load profile: ${response[0].message ?? 'Unknown error'}';
