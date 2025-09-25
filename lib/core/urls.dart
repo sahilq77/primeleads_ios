@@ -39,7 +39,7 @@ class Networkutility {
   static int getMinMaxApi = 17;
   static String logout = "${baseUrl + "post_app_logout"}";
   static int logoutApi = 18;
-  static String submitsubscrition = "${baseUrl + "subscribed_user"}";
+  static String submitsubscrition = "${baseUrl + "set_city_after_payment"}";
   static int submitsubscritionApi = 19;
   static String getleads = "${baseUrl + "get_leads"}";
   static int getleadsApi = 20;
@@ -71,3 +71,9 @@ class Networkutility {
   static String setPayment = "${baseUrl + "set_payment"}";
   static int setPaymentApi = 33;
 }
+
+
+
+//cihejog817@dotxan.com
+//https://www.hostycare.com/
+//Sahil@11

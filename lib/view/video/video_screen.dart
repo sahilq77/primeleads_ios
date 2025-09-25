@@ -173,13 +173,32 @@ class _VideoListScreenState extends State<VideoListScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Join Our WhatsApp Community',
+                            ReadMoreText(
+                              "Join Our WhatsApp Community",
+                              trimMode: TrimMode.Line,
                               style: GoogleFonts.poppins(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                               ),
+                              trimLines: 1,
+                              colorClickableText: Colors.pink,
+                              trimCollapsedText: 'Learn more',
+
+                              trimExpandedText: 'Show less',
+
+                              moreStyle: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
+                            // Text(
+                            //   'Join Our WhatsApp Community',
+                            //   style: GoogleFonts.poppins(
+                            //     fontSize: 15,
+                            //     fontWeight: FontWeight.w600,
+                            //   ),
+                            // ),
                             const SizedBox(height: 5),
                             Text(
                               'Connect with 1000+ active coaches.\nLearn, share,& grow together.',

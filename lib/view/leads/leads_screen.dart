@@ -45,15 +45,19 @@ class _LeadsScreenState extends State<LeadsScreen> {
   void initState() {
     super.initState();
     ReminderNotification().init();
-    //5_requestPermissions();
+    _requestPermissions();
     _loadReminders();
     _dateController.text =
         "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}";
     _reminderdateController.text =
         "${_selectedReminderDate.day}/${_selectedReminderDate.month}/${_selectedReminderDate.year}";
-    print('Initial _dateController.text: ${_dateController.text}');
-    print(
+    lg.log(
+      'Initial _dateController.text: ${_dateController.text}',
+      time: DateTime.now(),
+    );
+    lg.log(
       'Initial _reminderdateController.text: ${_reminderdateController.text}',
+      time: DateTime.now(),
     );
 
     Future.delayed(const Duration(seconds: 1), () {
@@ -67,7 +71,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
     PermissionStatus notificationStatus =
         await Permission.notification.request();
     if (notificationStatus.isDenied || notificationStatus.isPermanentlyDenied) {
-      print("Notification permission denied");
+      lg.log(
+        'LeadsScreen: Notification permission denied',
+        time: DateTime.now(),
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -76,14 +83,27 @@ class _LeadsScreenState extends State<LeadsScreen> {
         ),
       );
       await openAppSettings();
+    } else {
+      lg.log(
+        'LeadsScreen: Notification permission granted',
+        time: DateTime.now(),
+      );
     }
 
     if (await Permission.scheduleExactAlarm.isDenied) {
       await Permission.scheduleExactAlarm.request();
+      lg.log(
+        'LeadsScreen: SCHEDULE_EXACT_ALARM permission requested',
+        time: DateTime.now(),
+      );
     }
 
     if (await Permission.ignoreBatteryOptimizations.isDenied) {
       await Permission.ignoreBatteryOptimizations.request();
+      lg.log(
+        'LeadsScreen: Battery optimization exemption requested',
+        time: DateTime.now(),
+      );
     }
   }
 
@@ -91,6 +111,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _timeController.text = _selectedTime.format(context);
+    lg.log(
+      'LeadsScreen: Time updated: ${_timeController.text}',
+      time: DateTime.now(),
+    );
   }
 
   Future<void> _loadReminders() async {
@@ -98,11 +122,17 @@ class _LeadsScreenState extends State<LeadsScreen> {
     setState(() {
       _reminders = reminders;
     });
+    lg.log(
+      'LeadsScreen: Loaded ${_reminders.length} reminders from DB',
+      time: DateTime.now(),
+    );
   }
 
   Future<void> _deleteReminder(int id) async {
     await _dbHelper.deleteReminder(id);
+    await ReminderNotification().cancelNotification(id);
     _loadReminders();
+    lg.log('LeadsScreen: Deleted reminder with ID: $id', time: DateTime.now());
   }
 
   Future<void> _selectDate(BuildContext context, StateSetter setState) async {
@@ -117,7 +147,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
         _selectedDate = picked;
         _dateController.text =
             "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}";
-        print('Filter date updated: ${_dateController.text}');
+        lg.log(
+          'LeadsScreen: Filter date updated: ${_dateController.text}',
+          time: DateTime.now(),
+        );
       });
     }
   }
@@ -137,7 +170,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
         _selectedReminderDate = picked;
         _reminderdateController.text =
             "${_selectedReminderDate.day}/${_selectedReminderDate.month}/${_selectedReminderDate.year}";
-        print('Reminder date updated: ${_reminderdateController.text}');
+        lg.log(
+          'LeadsScreen: Reminder date updated: ${_reminderdateController.text}',
+          time: DateTime.now(),
+        );
       });
     }
   }
@@ -151,7 +187,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
       setState(() {
         _selectedTime = picked;
         _timeController.text = _selectedTime.format(context);
-        print('Time updated: ${_timeController.text}');
+        lg.log(
+          'LeadsScreen: Time updated: ${_timeController.text}',
+          time: DateTime.now(),
+        );
       });
     }
   }
@@ -159,8 +198,13 @@ class _LeadsScreenState extends State<LeadsScreen> {
   _makingPhoneCall(String num) async {
     var _url = Uri.parse("tel:$num");
     if (!await launchUrl(_url, mode: LaunchMode.externalApplication)) {
+      lg.log(
+        'LeadsScreen: Could not launch phone call: $_url',
+        time: DateTime.now(),
+      );
       throw Exception('Could not launch $_url');
     }
+    lg.log('LeadsScreen: Initiated phone call to $num', time: DateTime.now());
   }
 
   Future<void> _launchWhatsApp(
@@ -179,7 +223,15 @@ class _LeadsScreenState extends State<LeadsScreen> {
     try {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
+        lg.log(
+          'LeadsScreen: Launched WhatsApp for $phoneNumber',
+          time: DateTime.now(),
+        );
       } else {
+        lg.log(
+          'LeadsScreen: WhatsApp not installed or invalid phone number: $phoneNumber',
+          time: DateTime.now(),
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -189,7 +241,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
         );
       }
     } catch (e) {
-      debugPrint('Error launching WhatsApp: $e');
+      lg.log('LeadsScreen: Error launching WhatsApp: $e', time: DateTime.now());
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Could not open WhatsApp')));
@@ -199,14 +251,13 @@ class _LeadsScreenState extends State<LeadsScreen> {
   void _clearDate() {
     setState(() {
       _dateController.clear();
-      print('Filter date cleared');
+      lg.log('LeadsScreen: Filter date cleared', time: DateTime.now());
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final ScrollController scrollController = ScrollController();
     scrollController.addListener(() {
       if (scrollController.position.pixels >=
@@ -218,17 +269,21 @@ class _LeadsScreenState extends State<LeadsScreen> {
     });
     return WillPopScope(
       onWillPop: () async {
-        print(
-          'Main: WillPopScope triggered, current route: ${Get.currentRoute}, selectedIndex: ${bottomController.selectedIndex.value}',
+        lg.log(
+          'LeadsScreen: WillPopScope triggered, current route: ${Get.currentRoute}, selectedIndex: ${bottomController.selectedIndex.value}',
+          time: DateTime.now(),
         );
         if (Get.currentRoute != AppRoutes.home &&
             Get.currentRoute != AppRoutes.splash) {
-          print('Main: Navigating to home');
+          lg.log('LeadsScreen: Navigating to home', time: DateTime.now());
           bottomController.selectedIndex.value = 0;
           Get.offAllNamed(AppRoutes.home);
           return false;
         }
-        print('Main: On home or splash, allowing app exit');
+        lg.log(
+          'LeadsScreen: On home or splash, allowing app exit',
+          time: DateTime.now(),
+        );
         return true;
       },
       child: Scaffold(
@@ -257,7 +312,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 vertical: 16,
               ),
               child: Container(
-                height: screenHeight * 0.09,
+                height: MediaQuery.of(context).size.height * 0.09,
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
@@ -360,8 +415,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                                 onPressed: () {
                                                   setState(() {
                                                     _dateController.clear();
-                                                    print(
-                                                      'Filter date cleared',
+                                                    lg.log(
+                                                      'LeadsScreen: Filter date cleared',
+                                                      time: DateTime.now(),
                                                     );
                                                   });
                                                   controller.fetchleadsList(
@@ -422,26 +478,29 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                                         formattedDate =
                                                             '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
                                                       } else {
-                                                        print(
-                                                          'Invalid date format: ${_dateController.text}',
+                                                        lg.log(
+                                                          'LeadsScreen: Invalid date format: ${_dateController.text}',
+                                                          time: DateTime.now(),
                                                         );
                                                         formattedDate = null;
                                                       }
                                                     } catch (e) {
-                                                      print(
-                                                        'Error parsing date: $e',
+                                                      lg.log(
+                                                        'LeadsScreen: Error parsing date: $e',
+                                                        time: DateTime.now(),
                                                       );
                                                       formattedDate = null;
                                                     }
                                                   } else {
-                                                    print('No date selected');
+                                                    lg.log(
+                                                      'LeadsScreen: No date selected',
+                                                      time: DateTime.now(),
+                                                    );
                                                     formattedDate = null;
                                                   }
-                                                  print(
-                                                    'Selected date: ${_dateController.text}',
-                                                  );
-                                                  print(
-                                                    'Formatted date: $formattedDate',
+                                                  lg.log(
+                                                    'LeadsScreen: Selected date: ${_dateController.text}, Formatted date: $formattedDate',
+                                                    time: DateTime.now(),
                                                   );
                                                   controller.fetchleadsList(
                                                     context: context,
@@ -485,7 +544,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 ),
               ),
             ),
-            SizedBox(height: screenHeight * 0.01),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () => controller.refreshleadsList(context: context),
@@ -493,7 +552,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                   if (controller.isLoading.value) {
                     return CustomShimmer(
                       screenWidth: screenWidth,
-                      screenHeight: screenHeight,
+                      screenHeight: MediaQuery.of(context).size.height,
                     );
                   }
                   return ListView.builder(
@@ -531,118 +590,156 @@ class _LeadsScreenState extends State<LeadsScreen> {
                             );
                       }
                       var lead = controller.leadsList[index];
-                      return GestureDetector(
-                        onTap: () {
-                          Get.toNamed(AppRoutes.leadsDetails, arguments: lead);
-                        },
-                        child: Card(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildDetailRow("Name", "${lead.name}"),
-                                _buildDetailRow(
-                                  "Contact No.",
-                                  "${lead.mobileNo}",
+                      return SizedBox(
+                        // height: 180, // Constrain the height of each list item
+                        child: GestureDetector(
+                          onTap: () {
+                            Get.toNamed(
+                              AppRoutes.leadsDetails,
+                              arguments: lead,
+                            );
+                          },
+                          child: LayoutBuilder(
+                            builder: (
+                              BuildContext context,
+                              BoxConstraints constraints,
+                            ) {
+                              final double screenWidth = constraints.maxWidth;
+                              // Use fixed or proportional heights instead of maxHeight
+                              final double cardHorizontalMargin =
+                                  screenWidth * 0.04;
+                              final double cardVerticalMargin = 8.0;
+                              final double cardPadding = screenWidth * 0.04;
+                              final double fontSize = screenWidth * 0.035;
+                              final double buttonWidth = screenWidth * 0.2;
+                              final double buttonSpacing = screenWidth * 0.02;
+                              final double notePadding = screenWidth * 0.025;
+                              final double borderRadius = screenWidth * 0.015;
+
+                              return Card(
+                                margin: EdgeInsets.symmetric(
+                                  horizontal: cardHorizontalMargin,
+                                  vertical: cardVerticalMargin,
                                 ),
-                                _buildDetailRow(
-                                  "Date",
-                                  "${lead.distributionDate}",
-                                ),
-                                SizedBox(height: screenHeight * 0.01),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _cardBottomButtons(
-                                      screenWidth,
-                                      color: 0xFF7294EA,
-                                      icon: AppImages.callIcon,
-                                      title: "Call",
-                                      press: () {
-                                        _makingPhoneCall(lead.mobileNo!);
-                                      },
-                                    ),
-                                    SizedBox(width: screenWidth * 0.02),
-                                    _cardBottomButtons(
-                                      screenWidth,
-                                      color: 0xFF36CAA8,
-                                      icon: AppImages.whatsapplIcon,
-                                      title: "Whatsapp",
-                                      press: () {
-                                        _launchWhatsApp(
-                                          context,
-                                          lead.whatsappNo!,
-                                          "",
-                                        );
-                                      },
-                                    ),
-                                    SizedBox(width: screenWidth * 0.02),
-                                    _cardBottomButtons(
-                                      screenWidth,
-                                      color: 0xFFCA9636,
-                                      icon: AppImages.noteIcon,
-                                      title: "Note",
-                                      press: () {
-                                        _noteDialog(
-                                          context,
-                                          controller,
-                                          lead.noteId.toString(),
-                                        );
-                                        setState(() {
-                                          _noteController.text = lead.note!;
-                                        });
-                                      },
-                                    ),
-                                    SizedBox(width: screenWidth * 0.02),
-                                    _cardBottomButtons(
-                                      screenWidth,
-                                      color: 0xFFCA4236,
-                                      icon: AppImages.reminderIcon,
-                                      title: "Reminder",
-                                      press: () {
-                                        _reminderDialog(
-                                          context,
-                                          controller,
-                                          lead.noteId.toString(),
-                                          lead.name.toString(),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: screenHeight * 0.02),
-                                SizedBox(
-                                  child:
-                                      lead.note != "" && lead.note != null
-                                          ? Container(
-                                            padding: const EdgeInsets.all(10),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(5),
-                                              color: AppColors.primary
-                                                  .withOpacity(0.1),
+                                child: Padding(
+                                  padding: EdgeInsets.all(cardPadding),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      _buildDetailRow(
+                                        "Name",
+                                        "${lead.name}",
+                                        fontSize,
+                                      ),
+                                      _buildDetailRow(
+                                        "Contact No.",
+                                        "${lead.mobileNo}",
+                                        fontSize,
+                                      ),
+                                      _buildDetailRow(
+                                        "Date",
+                                        "${lead.distributionDate}",
+                                        fontSize,
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          _cardBottomButtons(
+                                            buttonWidth,
+                                            color: 0xFF7294EA,
+                                            icon: AppImages.callIcon,
+                                            title: "Call",
+                                            fontSize: fontSize * 0.9,
+                                            press: () {
+                                              _makingPhoneCall(lead.mobileNo!);
+                                            },
+                                          ),
+                                          SizedBox(width: buttonSpacing),
+                                          _cardBottomButtons(
+                                            buttonWidth,
+                                            color: 0xFF36CAA8,
+                                            icon: AppImages.whatsapplIcon,
+                                            title: "Whatsapp",
+                                            fontSize: fontSize * 0.9,
+                                            press: () {
+                                              _launchWhatsApp(
+                                                context,
+                                                lead.whatsappNo!,
+                                                "",
+                                              );
+                                            },
+                                          ),
+                                          SizedBox(width: buttonSpacing),
+                                          _cardBottomButtons(
+                                            buttonWidth,
+                                            color: 0xFFCA9636,
+                                            icon: AppImages.noteIcon,
+                                            title: "Note",
+                                            fontSize: fontSize * 0.9,
+                                            press: () {
+                                              _noteDialog(
+                                                context,
+                                                controller,
+                                                lead.noteId.toString(),
+                                              );
+                                              setState(() {
+                                                _noteController.text =
+                                                    lead.note!;
+                                              });
+                                            },
+                                          ),
+                                          SizedBox(width: buttonSpacing),
+                                          _cardBottomButtons(
+                                            buttonWidth,
+                                            color: 0xFFCA4236,
+                                            icon: AppImages.reminderIcon,
+                                            title: "Reminder",
+                                            fontSize: fontSize * 0.9,
+                                            press: () {
+                                              _reminderDialog(
+                                                context,
+                                                controller,
+                                                lead.noteId.toString(),
+                                                lead.name.toString(),
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16.0),
+                                      if (lead.note != "" && lead.note != null)
+                                        Container(
+                                          padding: EdgeInsets.all(notePadding),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              borderRadius,
                                             ),
-                                            child: Text(
-                                              'Note: ${lead.note}',
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.poppins(
-                                                color: AppColors.defaultblack,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w400,
-                                              ),
+                                            color: AppColors.primary
+                                                .withOpacity(0.1),
+                                          ),
+                                          constraints: const BoxConstraints(
+                                            maxHeight: 60.0,
+                                          ),
+                                          child: Text(
+                                            'Note: ${lead.note}',
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.poppins(
+                                              color: AppColors.defaultblack,
+                                              fontSize: fontSize * 0.9,
+                                              fontWeight: FontWeight.w400,
                                             ),
-                                          )
-                                          : const SizedBox(),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ),
-                              ],
-                            ),
+                              );
+                            },
                           ),
                         ),
                       );
@@ -651,54 +748,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 }),
               ),
             ),
-            // Expanded(
-            //   child: ListView.builder(
-            //     itemCount: _reminders.length,
-            //     itemBuilder: (context, index) {
-            //       final reminder = _reminders[index];
-            //       return _reminders.isEmpty
-            //           ? Center(child: Text('No reminders found'))
-            //           : Dismissible(
-            //             key: Key(reminder['id'].toString()),
-            //             background: Container(
-            //               color: Colors.red,
-            //               alignment: Alignment.centerRight,
-            //               padding: const EdgeInsets.only(right: 20),
-            //               child: const Icon(Icons.delete, color: Colors.white),
-            //             ),
-            //             direction: DismissDirection.endToStart,
-            //             onDismissed: (direction) async {
-            //               await _deleteReminder(reminder['id']);
-            //               ScaffoldMessenger.of(context).showSnackBar(
-            //                 SnackBar(
-            //                   content: Text('${reminder['lead_name']} deleted'),
-            //                   action: SnackBarAction(
-            //                     label: 'Undo',
-            //                     onPressed: () async {
-            //                       await _dbHelper.insertReminder(reminder);
-            //                       _loadReminders();
-            //                     },
-            //                   ),
-            //                 ),
-            //               );
-            //             },
-            //             child: ListTile(
-            //               title: Text(reminder['lead_name']),
-            //               subtitle: Text(
-            //                 '${reminder['reminder_date']} ${reminder['reminder_time']}',
-            //               ),
-            //               leading: Text(reminder['lead_id']),
-            //               trailing: IconButton(
-            //                 icon: const Icon(Icons.delete),
-            //                 onPressed: () async {
-            //                   await _deleteReminder(reminder['id']);
-            //                 },
-            //               ),
-            //             ),
-            //           );
-            //     },
-            //   ),
-            // ),
+
+         
           ],
         ),
         bottomNavigationBar: const CustomBottomBar(),
@@ -706,7 +757,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, double fontSize) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 1),
       child: Row(
@@ -719,7 +770,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w500,
                 color: const Color(0xFF39373C),
-                fontSize: 13,
+                fontSize: fontSize,
               ),
             ),
           ),
@@ -730,7 +781,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w500,
                 color: const Color(0xFF39373C),
-                fontSize: 13,
+                fontSize: fontSize,
               ),
             ),
           ),
@@ -785,7 +836,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                   id: id,
                                   note: _noteController.text.trim(),
                                 );
-                                print(_noteController.text.trim());
+                                lg.log(
+                                  'LeadsScreen: Note updated for ID: $id, Note: ${_noteController.text.trim()}',
+                                  time: DateTime.now(),
+                                );
                                 _noteController.clear();
                                 Navigator.pop(context);
                               },
@@ -886,28 +940,32 @@ class _LeadsScreenState extends State<LeadsScreen> {
                           ),
                           readOnly: true,
                         ),
-                        // const SizedBox(height: 16),
-                        // DropdownButtonFormField<String>(
-                        //   decoration: const InputDecoration(
-                        //     labelText: 'Reminder Before',
-                        //     border: OutlineInputBorder(),
-                        //   ),
-                        //   value: selectedReminderOption,
-                        //   items:
-                        //       ['1 mins', "Don't remind"]
-                        //           .map(
-                        //             (option) => DropdownMenuItem(
-                        //               value: option,
-                        //               child: Text(option),
-                        //             ),
-                        //           )
-                        //           .toList(),
-                        //   onChanged: (value) {
-                        //     setState(() {
-                        //       selectedReminderOption = value;
-                        //     });
-                        //   },
-                        // ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(
+                            labelText: 'Reminder Before',
+                            border: OutlineInputBorder(),
+                          ),
+                          value: selectedReminderOption,
+                          items:
+                              ['1 mins', "Don't remind"]
+                                  .map(
+                                    (option) => DropdownMenuItem(
+                                      value: option,
+                                      child: Text(option),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedReminderOption = value;
+                              lg.log(
+                                'LeadsScreen: Selected reminder option: $value',
+                                time: DateTime.now(),
+                              );
+                            });
+                          },
+                        ),
                         const SizedBox(height: 16),
                         Center(
                           child: SizedBox(
@@ -926,6 +984,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                 if (scheduledDateTime.isBefore(
                                   now.add(const Duration(seconds: 10)),
                                 )) {
+                                  lg.log(
+                                    'LeadsScreen: Invalid reminder time: $scheduledDateTime is too close to now ($now)',
+                                    time: DateTime.now(),
+                                  );
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
@@ -943,11 +1005,20 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                   return formatter.format(date);
                                 }
 
+                                final formatter = DateFormat('HH:mm');
+                                String formattedTime = formatter.format(
+                                  DateTime(
+                                    _selectedReminderDate.year,
+                                    _selectedReminderDate.month,
+                                    _selectedReminderDate.day,
+                                    _selectedTime.hour,
+                                    _selectedTime.minute,
+                                  ),
+                                );
+
                                 String formattedDate = formatDate(
                                   _selectedReminderDate,
                                 );
-                                String formattedTime =
-                                    _timeController.text.trim();
 
                                 controller.setReminder(
                                   id: id,
@@ -971,28 +1042,44 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                     reminderData,
                                   );
                                   lg.log(
-                                    'ReminderNotification: Reminder updated in DB: $id, $formattedDate, $formattedTime',
+                                    'LeadsScreen: Reminder updated in DB: $id, $formattedDate, $formattedTime',
+                                    time: DateTime.now(),
                                   );
                                 } else {
                                   await DatabaseHelper.instance.insertReminder(
                                     reminderData,
                                   );
                                   lg.log(
-                                    'ReminderNotification: Reminder stored in DB: $id, $formattedDate, $formattedTime',
+                                    'LeadsScreen: Reminder stored in DB: $id, $formattedDate, $formattedTime',
+                                    time: DateTime.now(),
                                   );
                                 }
 
                                 if (selectedReminderOption != "Don't remind") {
+                                  final notificationId = int.parse(id);
+                                  await ReminderNotification()
+                                      .cancelNotification(notificationId);
+                                  lg.log(
+                                    'LeadsScreen: Cancelled any existing notification for ID: $notificationId',
+                                    time: DateTime.now(),
+                                  );
                                   await ReminderNotification().scheduleNotification(
-                                    id: id.hashCode,
+                                    id: notificationId,
                                     title: 'Reminder: Follow-up with $leadName',
                                     body:
-                                        'Scheduled for $formattedDate at $formattedTime',
+                                        'Scheduled for $formattedDate at $formattedTime (24-hour format).',
                                     scheduledDate: scheduledDateTime,
+                                  );
+                                } else {
+                                  final notificationId = int.parse(id);
+                                  await ReminderNotification()
+                                      .cancelNotification(notificationId);
+                                  lg.log(
+                                    'LeadsScreen: Cancelled notification for ID: $notificationId due to "Don\'t remind"',
+                                    time: DateTime.now(),
                                   );
                                 }
 
-                                // Optionally schedule reminders for all leads
                                 await ReminderNotification()
                                     .scheduleRemindersForAllLeads(
                                       selectedReminderOption,
@@ -1044,10 +1131,11 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   _cardBottomButtons(
     double screenWidth, {
-    required color,
+    required int color,
     required String icon,
     required String title,
     required VoidCallback press,
+    required double fontSize,
   }) {
     return GestureDetector(
       onTap: press,
@@ -1068,9 +1156,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
               SizedBox(width: screenWidth * 0.01),
               Text(
                 title,
-                style: const TextStyle(
-                  color: Color(0xFF39373C),
-                  fontSize: 12,
+                style: TextStyle(
+                  color: const Color(0xFF39373C),
+                  fontSize: fontSize,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1116,11 +1204,11 @@ class CustomShimmer extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(width: 200, height: 16, color: Colors.white),
-                      SizedBox(height: screenHeight * 0.01),
+                      const SizedBox(height: 8),
                       Container(width: 150, height: 16, color: Colors.white),
-                      SizedBox(height: screenHeight * 0.01),
+                      const SizedBox(height: 8),
                       Container(width: 100, height: 16, color: Colors.white),
-                      SizedBox(height: screenHeight * 0.01),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: List.generate(
@@ -1135,7 +1223,7 @@ class CustomShimmer extends StatelessWidget {
                           ),
                         ),
                       ),
-                      SizedBox(height: screenHeight * 0.02),
+                      const SizedBox(height: 16),
                       Container(
                         width: double.infinity,
                         height: 40,

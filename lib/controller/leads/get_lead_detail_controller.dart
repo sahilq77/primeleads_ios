@@ -9,8 +9,10 @@ import '../../model/leads/get_note_update_response.dart';
 import '../../model/leads/set_reminder_response';
 import '../../utility/app_colors.dart';
 import '../../utility/app_utility.dart';
+import '../profile/profile_controller.dart';
 
 class GetLeadDetailController extends GetxController {
+  final profileController = Get.put(ProfileController());
   var leadsDetailList = <LeadDetail>[].obs;
   var errorMessage = ''.obs;
   var errorMessageUp = ''.obs;
@@ -43,7 +45,8 @@ class GetLeadDetailController extends GetxController {
       final jsonBody = {
         "user_id": AppUtility.userID,
         "sector_id": AppUtility.sectorID,
-        "subscribtion_id": AppUtility.subscriptionID,
+        "subscribtion_id":
+            profileController.userProfileList.first.subscriptionId,
         "lead_id": leadId,
       };
 
@@ -210,7 +213,11 @@ class GetLeadDetailController extends GetxController {
             colorText: Colors.white,
             duration: Duration(seconds: 3),
           );
-          await fecthLeadDtail(context: context!, leadId: id ?? "",reset: true);
+          await fecthLeadDtail(
+            context: context!,
+            leadId: id ?? "",
+            reset: true,
+          );
         } else {
           errorMessageUp.value = response[0].message;
           Get.snackbar(

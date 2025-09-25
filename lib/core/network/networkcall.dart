@@ -35,6 +35,7 @@ import '../../model/profile/get_update_response.dart';
 import '../../model/reminder/get_calender_response.dart';
 import '../../model/reminder/get_reminder_list_response.dart';
 import '../../model/smarter_lead/get_smarter_lead_response.dart';
+import '../../model/subscription/set_cities_response.dart';
 import '../../model/subscription/set_payments_response.dart';
 import '../../model/subscription/submit_subscription_response.dart';
 import '../../model/terms/get_terms_response.dart';
@@ -150,7 +151,7 @@ class Networkcall {
             final getMinMax = getLogoutResponseFromJson(str);
             return getMinMax;
           case 19:
-            final submitSubscription = getSubmitSubscriptionResponseFromJson(
+            final submitSubscription = getSetCitiesResponseFromJson(
               str,
             );
             return submitSubscription;

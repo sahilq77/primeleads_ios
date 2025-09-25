@@ -393,10 +393,10 @@ class _BillListScreenState extends State<BillListScreen> {
                                 ),
                               ),
                               Text(
-                                pay.payment == "0" ? "Completed" : "Pending",
+                                pay.payment == "1" ? "Completed" : "Pending",
                                 style: TextStyle(
                                   color:
-                                      pay.payment == "0"
+                                      pay.payment == "1"
                                           ? Colors.green
                                           : Colors.red,
                                   fontSize: 13,

@@ -9,8 +9,10 @@ import '../../model/leads/get_note_update_response.dart';
 import '../../model/leads/set_reminder_response';
 import '../../utility/app_colors.dart';
 import '../../utility/app_utility.dart';
+import '../profile/profile_controller.dart';
 
 class GetLeadsController extends GetxController {
+  final profileController = Get.put(ProfileController());
   var leadsList = <LeadsData>[].obs;
   var errorMessage = ''.obs;
   var errorMessageUp = ''.obs;
@@ -29,8 +31,9 @@ class GetLeadsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      fetchleadsList(context: Get.context!);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await profileController.fetchUserProfile(context: Get.context!);
+      await fetchleadsList(context: Get.context!);
     });
   }
 
@@ -59,7 +62,8 @@ class GetLeadsController extends GetxController {
       final jsonBody = {
         "user_id": AppUtility.userID,
         "sector_id": AppUtility.sectorID,
-        "subscribtion_id": AppUtility.subscriptionID,
+        "subscribtion_id":
+            profileController.userProfileList.first.subscriptionId.toString(),
         "created_date": date ?? "",
         "limit": limit.toString(),
         "offset": offset.value.toString(),

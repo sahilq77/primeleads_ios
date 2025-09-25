@@ -10,6 +10,7 @@ import '../../core/network/exceptions.dart';
 import '../../core/network/networkcall.dart';
 import '../../core/urls.dart';
 
+import '../../model/subscription/set_cities_response.dart';
 import '../../utility/app_colors.dart';
 import '../../utility/app_images.dart';
 import '../../utility/app_routes.dart';
@@ -41,7 +42,7 @@ class BuySubscriptionController extends GetxController {
         "state_id": stateID,
         "city_id": cityID,
         "transaction_no": transactionID,
-        "payment": 1, // 1=success, 0=pending
+        "payment": 1.toString(), // 1=success, 0=pending
       };
 
       isLoading.value = true;
@@ -54,19 +55,20 @@ class BuySubscriptionController extends GetxController {
       );
 
       if (list != null && list.isNotEmpty) {
-        List<GetSubmitSubscriptionResponse> response = List.from(list);
+        List<GetSetCitiesResponse> response = List.from(list);
         if (response[0].status == "true") {
           final user = response[0].data;
-          AppUtility.setUserInfo(
-            "",
-            AppUtility.userID.toString(),
-            AppUtility.sectorID.toString(),
-            user.subscribtionId,
-          );
-          subscribeToTopic(user.topicName);
+          // AppUtility.setUserInfo(
+          //   "",
+          //   AppUtility.userID.toString(),
+          //   AppUtility.sectorID.toString(),
+          //   user.subscribtionId,
+          // );
+          // subscribeToTopic(user.topicName);
 
           // Show Thank You Dialog
-          _showThankYouDialog(context ?? Get.context!);
+          // _showThankYouDialog(context ?? Get.context!);
+          print("set city success");
         } else {
           Get.snackbar(
             'Error',
