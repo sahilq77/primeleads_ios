@@ -183,6 +183,8 @@ class _VideoListScreenState extends State<VideoListScreen> {
                             const SizedBox(height: 5),
                             Text(
                               'Connect with 1000+ active coaches.\nLearn, share,& grow together.',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
