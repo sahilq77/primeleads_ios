@@ -81,9 +81,7 @@ class PaymentListController extends GetxController {
           }
           // Add only new items to avoid duplicates
           for (var lead in leads) {
-            if (!paymentList.any(
-              (existing) => existing.amount == lead.amount,
-            )) {
+            if (!paymentList.any((existing) => existing.id == lead.id)) {
               paymentList.add(
                 PaymentData(
                   refNo: lead.refNo,

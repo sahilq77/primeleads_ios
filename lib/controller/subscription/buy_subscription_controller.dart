@@ -15,9 +15,19 @@ import '../../utility/app_colors.dart';
 import '../../utility/app_images.dart';
 import '../../utility/app_routes.dart';
 import '../../utility/app_utility.dart';
+import '../profile/profile_controller.dart';
 
 class BuySubscriptionController extends GetxController {
+  final ProfileController profileController = Get.put(ProfileController());
   RxBool isLoading = true.obs;
+
+  void onInit() {
+    super.onInit();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      profileController.fetchUserProfile(context: Get.context!);
+    });
+  }
+
   Future<void> subscribeToTopic(String topic) async {
     // Split the topic string by comma and subscribe to each topic
     List<String> topics = topic.split(',');
@@ -30,18 +40,22 @@ class BuySubscriptionController extends GetxController {
   Future<void> submitSubscription({
     BuildContext? context,
     required String? subscriptionid,
+    required String? subscriptionUserId,
     required String? stateID,
     required dynamic cityID,
     required String? transactionID,
   }) async {
     try {
       final jsonBody = {
-        "subscribtion_id": subscriptionid,
+        "subscribtion_id":
+            profileController.userProfileList.first.subscriptionId,
         "user_id": AppUtility.userID,
+        "subscribed_user_id":
+            profileController.userProfileList.first.subscribedUserId,
         "sector_id": AppUtility.sectorID,
         "state_id": stateID,
         "city_id": cityID,
-        "transaction_no": transactionID,
+        "transaction_no": profileController.userProfileList.first.transactioId,
         "payment": 1.toString(), // 1=success, 0=pending
       };
 
@@ -68,6 +82,7 @@ class BuySubscriptionController extends GetxController {
 
           // Show Thank You Dialog
           // _showThankYouDialog(context ?? Get.context!);
+          Get.offNamed(AppRoutes.leads);
           print("set city success");
         } else {
           Get.snackbar(

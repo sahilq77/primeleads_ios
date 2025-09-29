@@ -17,6 +17,8 @@ import 'package:prime_leads/utility/app_images.dart';
 import 'package:prime_leads/utility/nodatascreen.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../controller/subscription_status/subscription_status_controller.dart';
+
 class SubscriptionScreen extends StatefulWidget {
   @override
   _SubscriptionScreenState createState() => _SubscriptionScreenState();
@@ -27,6 +29,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   final controller = Get.put(SubscriptionController());
   final leadsController = Get.put(GetLeadsController());
   final profileController = Get.put(ProfileController());
+  final SubscriptionStatusController subsStatusController = Get.put(
+    SubscriptionStatusController(),
+  );
   int _selectedIndex = -1;
 
   void _selectCard(int index) {
@@ -51,6 +56,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     debugPrint('[SubscriptionScreen] Initializing SubscriptionScreen');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchSubcriptions(context: context);
+      subsStatusController.getSubStatus(context: context);
     });
   }
 
@@ -167,47 +173,56 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               _selectedIndex <
                                   controller.subcriptionsList.length
                           ? () {
-                            debugPrint(
-                              '[SubscriptionScreen] Pay Now clicked, checking eligibility',
-                            );
-                            debugPrint(
-                              '[SubscriptionScreen] Current subscriptionID: ${AppUtility.subscriptionID}',
-                            );
-                            debugPrint(
-                              '[SubscriptionScreen] Remaining leads: ${leadsController.remainingLeads.value}',
-                            );
-                            if (AppUtility.subscriptionID == "" &&
-                                leadsController.remainingLeads.value.isEmpty) {
-                              debugPrint(
-                                '[SubscriptionScreen] New user, no active subscription, proceeding to payment',
-                              );
-                              _navigateToRazorpay();
-                            } else if (AppUtility.subscriptionID!.isNotEmpty &&
-                                leadsController.remainingLeads.value == "0") {
-                              debugPrint(
-                                '[SubscriptionScreen] Existing user with no remaining leads, proceeding to payment',
-                              );
-                              _navigateToRazorpay();
-                            } else if (AppUtility.subscriptionID!.isNotEmpty &&
-                                leadsController.leadsList.isEmpty) {
-                              debugPrint(
-                                '[SubscriptionScreen] User has subscription but no leads received',
-                              );
+                            if (subsStatusController.subStatus.value == "0") {
                               _showThankYouDialog(
                                 context,
-                                "Gold Package",
-                                "You already bought a package, but leads have not been received from admin.",
+                                "Your package is not expired",
+                                "",
                               );
                             } else {
-                              debugPrint(
-                                '[SubscriptionScreen] User has remaining leads, not eligible for new purchase',
-                              );
-                              _showThankYouDialog(
-                                context,
-                                "Gold Package",
-                                "Your remaining leads (${leadsController.remainingLeads.value}) are not zero. You can buy a new package after they are exhausted.",
-                              );
+                              _navigateToRazorpay();
                             }
+                            // debugPrint(
+                            //   '[SubscriptionScreen] Pay Now clicked, checking eligibility',
+                            // );
+                            // debugPrint(
+                            //   '[SubscriptionScreen] Current subscriptionID: ${AppUtility.subscriptionID}',
+                            // );
+                            // debugPrint(
+                            //   '[SubscriptionScreen] Remaining leads: ${leadsController.remainingLeads.value}',
+                            // );
+                            // if (AppUtility.subscriptionID == "" &&
+                            //     leadsController.remainingLeads.value.isEmpty) {
+                            //   debugPrint(
+                            //     '[SubscriptionScreen] New user, no active subscription, proceeding to payment',
+                            //   );
+                            //   _navigateToRazorpay();
+                            // } else if (AppUtility.subscriptionID!.isNotEmpty &&
+                            //     leadsController.remainingLeads.value == "0") {
+                            //   debugPrint(
+                            //     '[SubscriptionScreen] Existing user with no remaining leads, proceeding to payment',
+                            //   );
+                            //   _navigateToRazorpay();
+                            // } else if (AppUtility.subscriptionID!.isNotEmpty &&
+                            //     leadsController.leadsList.isEmpty) {
+                            //   debugPrint(
+                            //     '[SubscriptionScreen] User has subscription but no leads received',
+                            //   );
+                            //   _showThankYouDialog(
+                            //     context,
+                            //     "Gold Package",
+                            //     "You already bought a package, but leads have not been received from admin.",
+                            //   );
+                            // } else {
+                            //   debugPrint(
+                            //     '[SubscriptionScreen] User has remaining leads, not eligible for new purchase',
+                            //   );
+                            //   _showThankYouDialog(
+                            //     context,
+                            //     "Gold Package",
+                            //     "Your remaining leads (${leadsController.remainingLeads.value}) are not zero. You can buy a new package after they are exhausted.",
+                            //   );
+                            // }
                           }
                           : () {
                             debugPrint(
@@ -447,7 +462,6 @@ class SubscriptionCard extends StatelessWidget {
                               ),
                             ),
                             child: CachedNetworkImage(
-                              
                               imageUrl: package.image,
                               fit: BoxFit.cover,
                               width: 20,
@@ -478,22 +492,41 @@ class SubscriptionCard extends StatelessWidget {
                         ],
                       ),
                       SizedBox(height: 8),
-                      Text(
-                        "₹ ${package.amount}",
-                        style: TextStyle(
-                          decoration: TextDecoration.lineThrough,
-                          color: AppColors.grey,
-                          fontWeight: FontWeight.w500,
+                      if (package.discountAmount.isNotEmpty &&
+                          package.discountAmount != null)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "₹ ${package.amount}",
+                              style: TextStyle(
+                                decoration: TextDecoration.lineThrough,
+                                color: AppColors.grey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              "₹ ${package.discountAmount}",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? color : AppColors.textDark,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      Text(
-                        "₹ ${package.discountAmount}",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected ? color : AppColors.textDark,
+                      if (package.discountAmount.isEmpty &&
+                          package.discountAmount == "" &&
+                          package.discountAmount != null)
+                        Text(
+                          "₹ ${package.amount}",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected ? color : AppColors.textDark,
+                          ),
                         ),
-                      ),
+
                       SizedBox(height: 8),
                       Row(
                         children: [

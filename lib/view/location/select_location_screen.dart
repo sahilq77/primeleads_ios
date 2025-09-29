@@ -272,19 +272,22 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                       'Selected City IDs: ${selectedCities.map((city) => controller.getCityId(city)).toList()}',
                     );
                     // Add navigation or API call here
-                    final args = Get.arguments;
-                    final subid = args['subscription_id'] as String;
-                    final tranID = args['transaction'] as String;
-                    log('subscription_id: $subid');
-                    log('transaction_id: $tranID');
+                    // final args = Get.arguments;
+                    // final subid = args['subscription_id'] as String;
+                    // final tranID = args['transaction'] as String;
+                    // // final subUserID = args['subscribed_user_id'] as String;
+                    // log('subscription_id: $subid');
+                    // log('transaction_id: $tranID');
                     buyController.submitSubscription(
-                      subscriptionid: subid,
+                      subscriptionid: "",
+                      subscriptionUserId: "",
+                      context: context,
                       stateID: controller.selectedStateId?.value,
                       cityID:
                           selectedCities
                               .map((city) => controller.getCityId(city))
                               .toList(),
-                      transactionID: tranID,
+                      transactionID: "",
                     );
                   }
                   : null;

@@ -69,7 +69,7 @@ class PaymentData {
     userName: json["user_name"] ?? "",
     mobileNumber: json["mobile_number"] ?? "",
     buyDate: DateTime.parse(json["buy_date"]),
-    amount: json["amount"] ?? "",
+    amount: json["discount_amount"] ?? "",
     packageName: json["package_name"] ?? "",
     payment: json["payment"] ?? "",
   );
@@ -80,7 +80,7 @@ class PaymentData {
     "mobile_number": mobileNumber,
     "buy_date":
         "${buyDate.year.toString().padLeft(4, '0')}-${buyDate.month.toString().padLeft(2, '0')}-${buyDate.day.toString().padLeft(2, '0')}",
-    "amount": amount,
+    "discount_amount": amount,
     "package_name": packageName,
     "payment": payment,
     "ref_no": refNo,

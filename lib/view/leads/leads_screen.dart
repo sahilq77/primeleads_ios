@@ -46,7 +46,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
     super.initState();
     ReminderNotification().init();
     _requestPermissions();
-    _loadReminders();
+    // _loadReminders();
     _dateController.text =
         "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}";
     _reminderdateController.text =
@@ -117,21 +117,21 @@ class _LeadsScreenState extends State<LeadsScreen> {
     );
   }
 
-  Future<void> _loadReminders() async {
-    final reminders = await _dbHelper.getReminders();
-    setState(() {
-      _reminders = reminders;
-    });
-    lg.log(
-      'LeadsScreen: Loaded ${_reminders.length} reminders from DB',
-      time: DateTime.now(),
-    );
-  }
+  // Future<void> _loadReminders() async {
+  //   final reminders = await _dbHelper.getReminders();
+  //   setState(() {
+  //     _reminders = reminders;
+  //   });
+  //   lg.log(
+  //     'LeadsScreen: Loaded ${_reminders.length} reminders from DB',
+  //     time: DateTime.now(),
+  //   );
+  // }
 
   Future<void> _deleteReminder(int id) async {
     await _dbHelper.deleteReminder(id);
     await ReminderNotification().cancelNotification(id);
-    _loadReminders();
+    // _loadReminders();
     lg.log('LeadsScreen: Deleted reminder with ID: $id', time: DateTime.now());
   }
 
@@ -748,8 +748,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 }),
               ),
             ),
-
-         
           ],
         ),
         bottomNavigationBar: const CustomBottomBar(),
@@ -1085,7 +1083,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                       selectedReminderOption,
                                     );
 
-                                _loadReminders();
+                                // _loadReminders();
                                 Navigator.pop(context);
                               },
                               style: ElevatedButton.styleFrom(

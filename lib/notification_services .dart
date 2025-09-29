@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -77,11 +78,7 @@ class NotificationServices {
         lg.log('Received foreground message: ${message.data}');
         if (message.notification != null || message.data.isNotEmpty) {
           showNotification(message);
-          if (context != null) {
-            handleRemoteMessage(context, message);
-          } else {
-            lg.log('Context is null, skipping navigation');
-          }
+          // Removed automatic navigation to handle only on user interaction
         }
       });
     } catch (e) {
@@ -205,11 +202,22 @@ class NotificationServices {
       int notificationId =
           message.messageId?.hashCode ?? Random().nextInt(10000);
 
+      // Prepare payload with message data and notification for handling on tap
+      Map<String, dynamic> payloadMap = {
+        'data': message.data,
+        'notification': {
+          'title': message.notification?.title,
+          'body': message.notification?.body,
+        },
+      };
+      String payload = jsonEncode(payloadMap);
+
       await flutterLocalNotificationsPlugin.show(
         notificationId,
         message.notification?.title ?? 'No title',
         message.notification?.body ?? 'No body',
         notificationDetails,
+        payload: payload,
       );
       lg.log(
         'Notification shown with ID: $notificationId, title: ${message.notification?.title}, body: ${message.notification?.body}',
@@ -258,6 +266,31 @@ class NotificationServices {
         lg.log('Handling background message: ${message.data}');
         handleRemoteMessage(context, message);
       });
+
+      // Add listener for foreground notification taps via local notifications
+      onNotifications.listen((payload) {
+        if (payload != null) {
+          try {
+            Map<String, dynamic> map = jsonDecode(payload);
+            Map<String, dynamic> data = map['data'] ?? {};
+            Map<String, dynamic> notifMap = map['notification'] ?? {};
+            RemoteNotification? notification =
+                notifMap.isNotEmpty
+                    ? RemoteNotification(
+                      title: notifMap['title'],
+                      body: notifMap['body'],
+                    )
+                    : null;
+            RemoteMessage reconstructedMessage = RemoteMessage(
+              data: data,
+              notification: notification,
+            );
+            handleRemoteMessage(context, reconstructedMessage);
+          } catch (e) {
+            lg.log('Error handling notification payload: $e');
+          }
+        }
+      });
     } catch (e) {
       lg.log('Error in setInteractMessage: $e');
     }
@@ -302,7 +335,7 @@ class NotificationServices {
             Get.toNamed(AppRoutes.home);
             break;
           case 'lead_page':
-            Get.toNamed(AppRoutes.leads);
+            Get.toNamed(AppRoutes.selectLocation);
             break;
           default:
             controller.goToHome();

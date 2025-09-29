@@ -45,7 +45,9 @@ class _PaymentReceiptDetailsScreenState
     }
 
     // Fetch user profile
-    profileController.fetchUserProfile(context: context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      profileController.fetchUserProfile(context: context);
+    });
   }
 
   String getName() {
@@ -242,6 +244,11 @@ class _PaymentReceiptDetailsScreenState
                                       await Get.toNamed(
                                         AppRoutes.selectLocation,
                                         arguments: {
+                                          "subscribed_user_id":
+                                              profileController
+                                                  .userProfileList
+                                                  .first
+                                                  .subscribedUserId,
                                           'subscription_id': subscriptionId,
                                           'transaction': transactionId,
                                         },

@@ -102,7 +102,7 @@ class _BillListScreenState extends State<BillListScreen> {
                                     false, // Removed search since it's a small static list
                                 fit: FlexFit.loose,
                               ),
-                              items: const ['Completed', 'Pending'],
+                              items: const ['Completed', 'Failed'],
                               onChanged: (String? newValue) async {
                                 if (newValue != null) {
                                   // final statusId =
@@ -189,11 +189,11 @@ class _BillListScreenState extends State<BillListScreen> {
                                             'Filter date cleared',
                                           ); // Debug print
                                         });
-                                        controller.fetchPaymentList(
+
+                                        controller.refreshleadsList(
                                           context: context,
-                                          reset: true,
-                                          date: null,
                                         );
+                                        selectedStatus = null;
                                         Navigator.pop(context);
                                       },
                                       style: OutlinedButton.styleFrom(
@@ -259,9 +259,11 @@ class _BillListScreenState extends State<BillListScreen> {
                                           reset: true,
                                           date: formattedDate,
                                           payment:
-                                              selectedStatus == "Completed"
-                                                  ? '0'
-                                                  : '1',
+                                              selectedStatus!.isNotEmpty &&
+                                                      selectedStatus ==
+                                                          "Completed"
+                                                  ? '1'
+                                                  : '0',
                                         );
                                         Navigator.pop(context);
                                       },
@@ -393,7 +395,7 @@ class _BillListScreenState extends State<BillListScreen> {
                                 ),
                               ),
                               Text(
-                                pay.payment == "1" ? "Completed" : "Pending",
+                                pay.payment == "1" ? "Completed" : "Failed",
                                 style: TextStyle(
                                   color:
                                       pay.payment == "1"

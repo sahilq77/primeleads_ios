@@ -49,7 +49,7 @@ class Subscription {
   String image;
   String validityDays;
   String tags;
-List<String> bulletPoints;
+  List<String> bulletPoints;
   String sectorName;
 
   Subscription({
@@ -62,24 +62,24 @@ List<String> bulletPoints;
     required this.image,
     required this.validityDays,
     required this.tags,
-required this.bulletPoints,
+    required this.bulletPoints,
     required this.sectorName,
   });
 
   factory Subscription.fromJson(Map<String, dynamic> json) => Subscription(
-    id: json["id"],
-    sectorId: json["sector_id"],
-    packageName: json["package_name"],
-    noOfLeads: json["no_of_leads"],
-    amount: json["amount"],
-    discountAmount: json["discount_amount"],
-    image: json["image"],
-    validityDays: json["validity_days"],
-    tags: json["tags"],
+    id: json["id"] ?? "",
+    sectorId: json["sector_id"] ?? "",
+    packageName: json["package_name"] ?? "",
+    noOfLeads: json["no_of_leads"] ?? "",
+    amount: json["amount"] ?? "",
+    discountAmount: json["discount_amount"] ?? "",
+    image: json["image"] ?? "",
+    validityDays: json["validity_days"] ?? "",
+    tags: json["tags"] ?? "",
 
     sectorName: json["sector_name"],
- bulletPoints: List<String>.from(json["bullet_points"].map((x) => x)),
-    );
+    bulletPoints: List<String>.from(json["bullet_points"].map((x) => x)),
+  );
 
   Map<String, dynamic> toJson() => {
     "id": id,
@@ -93,6 +93,6 @@ required this.bulletPoints,
     "tags": tags,
 
     "sector_name": sectorName,
- "bullet_points": List<dynamic>.from(bulletPoints.map((x) => x)),
-    };
+    "bullet_points": List<dynamic>.from(bulletPoints.map((x) => x)),
+  };
 }

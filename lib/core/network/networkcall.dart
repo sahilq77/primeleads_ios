@@ -38,6 +38,7 @@ import '../../model/smarter_lead/get_smarter_lead_response.dart';
 import '../../model/subscription/set_cities_response.dart';
 import '../../model/subscription/set_payments_response.dart';
 import '../../model/subscription/submit_subscription_response.dart';
+import '../../model/subscription_status/get_subscription_status_response.dart';
 import '../../model/terms/get_terms_response.dart';
 import '../../model/testimonial/testimonial_response.dart';
 import '../../model/video/get_training_video_response.dart';
@@ -151,9 +152,7 @@ class Networkcall {
             final getMinMax = getLogoutResponseFromJson(str);
             return getMinMax;
           case 19:
-            final submitSubscription = getSetCitiesResponseFromJson(
-              str,
-            );
+            final submitSubscription = getSetCitiesResponseFromJson(str);
             return submitSubscription;
           case 20:
             final getLeads = getLeadsResponseFromJson(str);
@@ -198,6 +197,12 @@ class Networkcall {
           case 33:
             final setPayment = getSetPaymentResponseFromJson(str);
             return setPayment;
+          case 34:
+            final getSubscriptionStatus = getSubscriptionStatusResponseFromJson(
+              str,
+            );
+            return getSubscriptionStatus;
+
           default:
             log("Invalid request code: $requestCode");
             throw ParseException('Unhandled request code: $requestCode');

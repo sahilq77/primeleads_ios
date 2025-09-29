@@ -266,8 +266,8 @@ class _PaymentRecieptScreenState extends State<PaymentRecieptScreen> {
                     ),
                     const SizedBox(height: 20),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Payment Success!!',
+                     Text(
+                     sub!.payment == "1"?  'Payment Success!!':'Payment Failed!!',
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w500,
@@ -302,7 +302,11 @@ class _PaymentRecieptScreenState extends State<PaymentRecieptScreen> {
                       formatDate(sub!.buyDate.toString()),
                     ),
                     const SizedBox(height: 12),
-                    _buildDetailRow('Pay Status', "Completed", isStatus: true),
+                    _buildDetailRow(
+                      'Pay Status',
+                      sub!.payment == "1" ? "Completed" : "Failed",
+                      isStatus: true,
+                    ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -396,7 +400,7 @@ class _PaymentRecieptScreenState extends State<PaymentRecieptScreen> {
     Color getStatusColor(String status) {
       if (status.toLowerCase() == 'completed') {
         return Colors.green;
-      } else if (status.toLowerCase() == 'pending') {
+      } else if (status.toLowerCase() == 'failed') {
         return Colors.red;
       } else {
         return AppColors.grey;

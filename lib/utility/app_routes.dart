@@ -200,7 +200,13 @@ class AppRoutes {
           '[AppRoutes] Creating RazorpayGateway with package: ${package.packageName}, amount: ₹${package.discountAmount}, subscriptionId: ${package.id}',
         );
         return RazorpayGateway(
-          totalPayable: double.parse(package.discountAmount),
+          totalPayable: double.parse(
+            package.discountAmount.isNotEmpty &&
+                    package.discountAmount != "" &&
+                    package.discountAmount != null
+                ? package.discountAmount
+                : package.amount,
+          ),
           subscriptionId: package.id,
           finalOrderPrice: double.parse(package.discountAmount),
         );

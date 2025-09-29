@@ -70,6 +70,10 @@ class Networkutility {
   static int verifyOtpApi = 32;
   static String setPayment = "${baseUrl + "set_payment"}";
   static int setPaymentApi = 33;
+
+  static String checkSubscriptionStatus =
+      "${baseUrl + "check_subscription_status"}";
+  static int checkSubscriptionStatusApi = 34;
 }
 
 
