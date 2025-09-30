@@ -1,4 +1,3 @@
-// lib/view/reminder_notification.dart
 import 'dart:async';
 import 'dart:developer' as lg;
 import 'dart:io';
@@ -6,7 +5,6 @@ import 'dart:typed_data';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -26,32 +24,23 @@ void backgroundNotificationHandler(NotificationResponse response) async {
       'ReminderNotification: Background notification received, payload: ${response.payload}',
       time: DateTime.now(),
     );
-    Vibrate.canVibrate
-        .then((canVibrate) {
-          if (canVibrate) {
-            Vibrate.vibrateWithPauses(const [
-              Duration(milliseconds: 0),
-              Duration(milliseconds: 1000),
-              Duration(milliseconds: 500),
-              Duration(milliseconds: 1000),
-            ]);
-            lg.log(
-              'ReminderNotification: Vibration triggered for background notification, ID: ${response.id}',
-              time: DateTime.now(),
-            );
-          } else {
-            lg.log(
-              'ReminderNotification: Vibration not available for background notification',
-              time: DateTime.now(),
-            );
-          }
-        })
-        .catchError((e) {
-          lg.log(
-            'ReminderNotification: Error in vibration for background notification: $e',
-            time: DateTime.now(),
-          );
-        });
+    if (response.payload != null &&
+        response.payload!.startsWith('lead_reminder_')) {
+      final leadId = int.tryParse(response.payload!.split('_').last);
+      if (leadId != null) {
+        // Store leadId or perform lightweight processing
+        // Note: Heavy operations like database initialization should be deferred to app startup
+        lg.log(
+          'ReminderNotification: Background handler processed leadId: $leadId',
+          time: DateTime.now(),
+        );
+        // Navigation can be handled after app resumes (see main.dart setup)
+      }
+    }
+    lg.log(
+      'ReminderNotification: Background handler executed successfully',
+      time: DateTime.now(),
+    );
   } catch (e, stackTrace) {
     lg.log(
       'ReminderNotification: Error in background notification handler: $e',
@@ -62,23 +51,6 @@ void backgroundNotificationHandler(NotificationResponse response) async {
       time: DateTime.now(),
     );
   }
-  if (response.payload != null &&
-      response.payload!.startsWith('lead_reminder_')) {
-    final leadId = int.tryParse(response.payload!.split('_').last);
-    if (leadId != null) {
-      // Store leadId or perform lightweight processing
-      // Note: Heavy operations like database initialization should be deferred to app startup
-      lg.log(
-        'ReminderNotification: Background handler processed leadId: $leadId',
-        time: DateTime.now(),
-      );
-      // Navigation can be handled after app resumes (see main.dart setup)
-    }
-  }
-  lg.log(
-    'ReminderNotification: Background handler executed successfully',
-    time: DateTime.now(),
-  );
 }
 
 class ReminderNotification {
@@ -151,14 +123,12 @@ class ReminderNotification {
           description: 'Channel for lead reminder notifications',
           importance: Importance.max,
           playSound: false,
-          enableVibration: true,
-          vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
           showBadge: true,
           audioAttributesUsage: AudioAttributesUsage.notificationEvent,
         ),
       );
       lg.log(
-        'ReminderNotification: Android notification channel created: lead_reminder_channel, no sound, with vibration',
+        'ReminderNotification: Android notification channel created: lead_reminder_channel, no sound',
         time: DateTime.now(),
       );
     }
@@ -170,25 +140,6 @@ class ReminderNotification {
           'ReminderNotification: Notification tapped in foreground, payload: ${response.payload}, ID: ${response.id}',
           time: DateTime.now(),
         );
-        Vibrate.canVibrate.then((canVibrate) {
-          if (canVibrate) {
-            Vibrate.vibrateWithPauses(const [
-              Duration(milliseconds: 0),
-              Duration(milliseconds: 1000),
-              Duration(milliseconds: 500),
-              Duration(milliseconds: 1000),
-            ]);
-            lg.log(
-              'ReminderNotification: Vibration triggered for foreground notification, ID: ${response.id}',
-              time: DateTime.now(),
-            );
-          } else {
-            lg.log(
-              'ReminderNotification: Vibration not available for foreground notification',
-              time: DateTime.now(),
-            );
-          }
-        });
         if (response.payload != null &&
             response.payload!.startsWith('lead_reminder_')) {
           final leadId = int.tryParse(response.payload!.split('_').last);
@@ -218,13 +169,6 @@ class ReminderNotification {
     } else if (Platform.isIOS) {
       await requestIOSNotificationPermission();
     }
-
-    // Check vibration capability
-    final canVibrate = await Vibrate.canVibrate;
-    lg.log(
-      'ReminderNotification: Vibration capability: $canVibrate',
-      time: DateTime.now(),
-    );
 
     // Clean old/orphaned notifications on init
     await cancelAllNotifications();
@@ -426,8 +370,6 @@ class ReminderNotification {
             importance: Importance.max,
             priority: Priority.high,
             showWhen: true,
-            enableVibration: true,
-            vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
             playSound: false,
             audioAttributesUsage: AudioAttributesUsage.notificationEvent,
           );
@@ -467,7 +409,7 @@ class ReminderNotification {
       // Store the scheduled notification
       _scheduledNotifications[id] = tzScheduledDate;
       lg.log(
-        'ReminderNotification: Notification scheduled successfully for $tzScheduledDate with vibration (ID: $id)',
+        'ReminderNotification: Notification scheduled successfully for $tzScheduledDate (ID: $id)',
         time: DateTime.now(),
       );
 
@@ -519,8 +461,6 @@ class ReminderNotification {
             importance: Importance.max,
             priority: Priority.high,
             showWhen: true,
-            enableVibration: true,
-            vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
             playSound: false,
             audioAttributesUsage: AudioAttributesUsage.notificationEvent,
           );
