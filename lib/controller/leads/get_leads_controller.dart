@@ -176,12 +176,12 @@ class GetLeadsController extends GetxController {
       }
     } catch (e) {
       errorMessage.value = 'Failed to refresh leads: $e';
-      // Get.snackbar(
-      //   'Error',
-      //   errorMessage.value,
-      //   backgroundColor: AppColors.error,
-      //   colorText: Colors.white,
-      // );
+      Get.snackbar(
+        'Error',
+        errorMessage.value,
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
     } finally {
       if (showLoading) {
         isLoading.value = false;

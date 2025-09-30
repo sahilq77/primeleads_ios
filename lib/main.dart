@@ -43,9 +43,9 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize NotificationServices
-  // final reminderNotification = ReminderNotification();
-  // await reminderNotification.init();
- 
+  final reminderNotification = ReminderNotification();
+  await reminderNotification.init();
+
   final NotificationServices notificationServices = NotificationServices();
 
   notificationServices.isTokenRefresh();

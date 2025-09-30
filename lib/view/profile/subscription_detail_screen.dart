@@ -156,62 +156,73 @@ class SubscriptionCard extends StatelessWidget {
         margin: EdgeInsets.symmetric(vertical: 8),
         child: Stack(
           children: [
-            Positioned(
-              right: 5,
-              top: 20,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                transform: Matrix4.identity()..scale(1.0),
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors:
-                        controller.subStatus.value == "0"
-                            ? [
-                              AppColors.success.withOpacity(0.9),
-                              AppColors.success.withOpacity(0.7),
-                            ]
-                            : [
-                              Colors.red.withOpacity(0.9),
-                              Colors.red.withOpacity(0.7),
-                            ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+            Obx(
+              () => Positioned(
+                right: 5,
+                top: 20,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  transform: Matrix4.identity()..scale(1.0),
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          controller.subStatus.value == "0"
-                              ? AppColors.success.withOpacity(0.3)
-                              : Colors.red.withOpacity(0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors:
+                          controller.subStatus.value.isNotEmpty &&
+                                  controller.subStatus.value == "0"
+                              ? [
+                                AppColors.success.withOpacity(0.9),
+                                AppColors.success.withOpacity(0.7),
+                              ]
+                              : [
+                                Colors.red.withOpacity(0.9),
+                                Colors.red.withOpacity(0.7),
+                              ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      controller.subStatus.value == "0"
-                          ? Icons.verified_rounded
-                          : Icons.cancel_rounded,
-                      color: Colors.white,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      controller.subStatus.value == "0" ? "Active" : "Expired",
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            controller.subStatus.value.isNotEmpty &&
+                                    controller.subStatus.value == "0"
+                                ? AppColors.success.withOpacity(0.3)
+                                : Colors.red.withOpacity(0.3),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        controller.subStatus.value.isNotEmpty &&
+                                controller.subStatus.value == "0"
+                            ? Icons.verified_rounded
+                            : Icons.cancel_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        controller.subStatus.value.isNotEmpty &&
+                                controller.subStatus.value == "0"
+                            ? "Active"
+                            : "Expired",
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

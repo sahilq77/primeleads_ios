@@ -167,7 +167,7 @@ class ReminderNotification {
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         lg.log(
-          'ReminderNotification: Notification tapped, payload: ${response.payload}',
+          'ReminderNotification: Notification tapped in foreground, payload: ${response.payload}, ID: ${response.id}',
           time: DateTime.now(),
         );
         Vibrate.canVibrate.then((canVibrate) {
@@ -461,7 +461,6 @@ class ReminderNotification {
         tzScheduledDate,
         notificationDetails,
         androidScheduleMode: androidScheduleMode,
-        matchDateTimeComponents: DateTimeComponents.dateAndTime,
         payload: 'lead_reminder_$id',
       );
 
@@ -485,7 +484,7 @@ class ReminderNotification {
         );
       } else {
         lg.log(
-          'ReminderNotification: No pending notification found with ID=$id',
+          'ReminderNotification: No pending notification found with ID=$id. Scheduling may have failed.',
           time: DateTime.now(),
         );
       }

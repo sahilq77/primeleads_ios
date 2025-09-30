@@ -1,3 +1,4 @@
+// android/app/build.gradle.kts
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -17,7 +18,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.quick.primeleads"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -33,7 +34,7 @@ android {
     defaultConfig {
         applicationId = "com.quick.primeleads"
         minSdk = 21
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true

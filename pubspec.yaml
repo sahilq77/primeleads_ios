@@ -66,6 +66,7 @@ dependencies:
   open_file: ^3.5.9
   fluttertoast: ^8.2.8
   timezone: ^0.10.0
+  flutter_vibrate: ^1.3.0
 
 
 
