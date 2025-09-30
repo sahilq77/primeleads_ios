@@ -17,6 +17,7 @@ import 'package:prime_leads/utility/app_images.dart';
 import 'package:prime_leads/utility/nodatascreen.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../controller/subscription/set_order_controller.dart';
 import '../../controller/subscription_status/subscription_status_controller.dart';
 
 class SubscriptionScreen extends StatefulWidget {
@@ -173,56 +174,23 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               _selectedIndex <
                                   controller.subcriptionsList.length
                           ? () {
-                            if (subsStatusController.subStatus.value == "0") {
+                            subsStatusController.getSubStatus(context: context);
+                            // _navigateToRazorpay();
+                            if (subsStatusController.firstBy.value == false) {
+                              _navigateToRazorpay();
+                            } else if (subsStatusController
+                                    .subStatus
+                                    .value
+                                    .isNotEmpty &&
+                                subsStatusController.subStatus.value == "0") {
                               _showThankYouDialog(
                                 context,
                                 "Your package is not expired",
-                                "",
+                                "After it expires, you can buy a new package anytime.",
                               );
                             } else {
                               _navigateToRazorpay();
                             }
-                            // debugPrint(
-                            //   '[SubscriptionScreen] Pay Now clicked, checking eligibility',
-                            // );
-                            // debugPrint(
-                            //   '[SubscriptionScreen] Current subscriptionID: ${AppUtility.subscriptionID}',
-                            // );
-                            // debugPrint(
-                            //   '[SubscriptionScreen] Remaining leads: ${leadsController.remainingLeads.value}',
-                            // );
-                            // if (AppUtility.subscriptionID == "" &&
-                            //     leadsController.remainingLeads.value.isEmpty) {
-                            //   debugPrint(
-                            //     '[SubscriptionScreen] New user, no active subscription, proceeding to payment',
-                            //   );
-                            //   _navigateToRazorpay();
-                            // } else if (AppUtility.subscriptionID!.isNotEmpty &&
-                            //     leadsController.remainingLeads.value == "0") {
-                            //   debugPrint(
-                            //     '[SubscriptionScreen] Existing user with no remaining leads, proceeding to payment',
-                            //   );
-                            //   _navigateToRazorpay();
-                            // } else if (AppUtility.subscriptionID!.isNotEmpty &&
-                            //     leadsController.leadsList.isEmpty) {
-                            //   debugPrint(
-                            //     '[SubscriptionScreen] User has subscription but no leads received',
-                            //   );
-                            //   _showThankYouDialog(
-                            //     context,
-                            //     "Gold Package",
-                            //     "You already bought a package, but leads have not been received from admin.",
-                            //   );
-                            // } else {
-                            //   debugPrint(
-                            //     '[SubscriptionScreen] User has remaining leads, not eligible for new purchase',
-                            //   );
-                            //   _showThankYouDialog(
-                            //     context,
-                            //     "Gold Package",
-                            //     "Your remaining leads (${leadsController.remainingLeads.value}) are not zero. You can buy a new package after they are exhausted.",
-                            //   );
-                            // }
                           }
                           : () {
                             debugPrint(
@@ -267,17 +235,45 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     );
   }
 
-  void _navigateToRazorpay() {
+  void _navigateToRazorpay() async {
     if (_selectedIndex >= 0 &&
         _selectedIndex < controller.subcriptionsList.length) {
       final package = controller.subcriptionsList[_selectedIndex];
       debugPrint(
-        '[SubscriptionScreen] Navigating to RazorpayGateway with package: ${package.packageName}',
+        '[SubscriptionScreen] Initiating setOrder for package: ${package.packageName}',
       );
       debugPrint(
         '[SubscriptionScreen] Amount: ₹${package.discountAmount}, Subscription ID: ${package.id}',
       );
-      Get.toNamed(AppRoutes.razorpayGateway, arguments: {'package': package});
+
+      // Create an instance of SetOrderController
+      final setOrderController = Get.put(SetOrderController());
+
+      // Call setOrder API
+      await setOrderController.setOrder(
+        context: context,
+        subscriptionid: package.id,
+      );
+
+      // Check if setOrder was successful
+      if (setOrderController.setOrderList.isNotEmpty &&
+          setOrderController.setOrderList.last.subscribtionId == package.id) {
+        debugPrint(
+          '[SubscriptionScreen] setOrder successful, navigating to RazorpayGateway',
+        );
+        // Navigate to Razorpay gateway if setOrder is successful
+        Get.toNamed(AppRoutes.razorpayGateway, arguments: {'package': package});
+      } else {
+        debugPrint(
+          '[SubscriptionScreen] setOrder failed, not navigating to Razorpay',
+        );
+        Get.snackbar(
+          'Error',
+          'Failed to set order. Please try again.',
+          backgroundColor: AppColors.error,
+          colorText: Colors.white,
+        );
+      }
     } else {
       debugPrint('[SubscriptionScreen] Navigation failed: No package selected');
       Get.snackbar(

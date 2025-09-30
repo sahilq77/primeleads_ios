@@ -19,7 +19,8 @@ import '../../model/global_model/get_state_response.dart';
 import '../../model/leads/get_lead_detail_response.dart';
 import '../../model/leads/get_leads_response.dart';
 import '../../model/leads/get_note_update_response.dart';
-import '../../model/leads/set_reminder_response';
+
+import '../../model/leads/set_reminder_response.dart';
 import '../../model/location/get_location_response.dart';
 import '../../model/location/get_min_max_city_response.dart';
 import '../../model/login/get_login_response.dart';
@@ -36,6 +37,8 @@ import '../../model/reminder/get_calender_response.dart';
 import '../../model/reminder/get_reminder_list_response.dart';
 import '../../model/smarter_lead/get_smarter_lead_response.dart';
 import '../../model/subscription/set_cities_response.dart';
+import '../../model/subscription/set_order_response.dart'
+    show getSetOrderResponseFromJson;
 import '../../model/subscription/set_payments_response.dart';
 import '../../model/subscription/submit_subscription_response.dart';
 import '../../model/subscription_status/get_subscription_status_response.dart';
@@ -202,6 +205,9 @@ class Networkcall {
               str,
             );
             return getSubscriptionStatus;
+          case 35:
+            final setOrder = getSetOrderResponseFromJson(str);
+            return setOrder;
 
           default:
             log("Invalid request code: $requestCode");

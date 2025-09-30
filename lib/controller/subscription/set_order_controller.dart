@@ -12,73 +12,58 @@ import '../../core/network/exceptions.dart';
 import '../../core/network/networkcall.dart';
 import '../../core/urls.dart';
 
+import '../../model/subscription/set_order_response.dart';
 import '../../utility/app_colors.dart';
 import '../../utility/app_images.dart';
 import '../../utility/app_routes.dart';
 import '../../utility/app_utility.dart';
 
-class SetPaymentController extends GetxController {
+class SetOrderController extends GetxController {
   RxBool isLoading = true.obs;
-  RxString subUId = "".obs;
-  Future<void> subscribeToTopic(String topic) async {
-    // Split the topic string by comma and subscribe to each topic
-    List<String> topics = topic.split(',');
-    for (String singleTopic in topics) {
-      await FirebaseMessaging.instance.subscribeToTopic(singleTopic.trim());
-      print('Subscribed to topic: ${singleTopic.trim()}');
-    }
-  }
+  var setOrderList = <SetOrderData>[].obs;
 
-  Future<void> setPayment({
+  Future<void> setOrder({
     BuildContext? context,
-    required String? subsUserid,
     required String? subscriptionid,
-    required String? paymentStaus,
-
-    required String? transactionID,
-    required String? refNo,
   }) async {
     try {
       final jsonBody = {
-        "subscribed_user_id": subsUserid,
         "subscribtion_id": subscriptionid,
         "user_id": AppUtility.userID,
         "sector_id": AppUtility.sectorID,
-        "transaction_no": transactionID,
-        "ref_no": refNo,
-        "payment": paymentStaus, // 1=success, 0=failed/cancel
       };
 
       isLoading.value = true;
 
-      List<Object?>? list = await Networkcall().postMethod(
-        Networkutility.setPaymentApi,
-        Networkutility.setPayment,
-        jsonEncode(jsonBody),
-        Get.context!,
-      );
+      List<GetSetOrderResponse>? response =
+          (await Networkcall().postMethod(
+                Networkutility.setOrderApi,
+                Networkutility.setOrder,
+                jsonEncode(jsonBody),
+                context!,
+              ))
+              as List<GetSetOrderResponse>?;
 
-      if (list != null && list.isNotEmpty) {
-        List<GetSetPaymentResponse> response = List.from(list);
+      if (response != null && response.isNotEmpty) {
         if (response[0].status == "true") {
           final user = response[0].data;
-
-          subUId = user.id.obs;
-          log("*****SubUID ${subUId}******");
-          // Persist to SharedPrefs
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('subUId', user.id);
-          print("Sub id saved to prefs: ${user.id}");
+          setOrderList.add(
+            SetOrderData(
+              id: user!.id,
+              subscribtionId: user!.subscribtionId,
+              refNo: user!.refNo,
+            ),
+          );
         } else {
           Get.snackbar(
             'Error',
-            response[0].message,
+            response[0].message.toString(),
             backgroundColor: AppColors.error,
             colorText: Colors.white,
           );
         }
       } else {
-        Get.back();
+        // Get.back();
         Get.snackbar(
           'Error',
           'No response from server',

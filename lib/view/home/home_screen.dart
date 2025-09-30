@@ -300,6 +300,117 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: screenHeight * 0.01),
+                          SizedBox(
+                            child:
+                                profileController.userProfileList.isNotEmpty &&
+                                        profileController
+                                                .userProfileList
+                                                .first
+                                                .isSelectedCities ==
+                                            "0"
+                                    ? Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0,
+                                      ),
+                                      child: GestureDetector(
+                                        onTap: () async {
+                                          await Get.toNamed(
+                                            AppRoutes.selectLocation,
+                                            arguments: {
+                                              'subscription_id':
+                                                  profileController
+                                                      .userProfileList
+                                                      .first
+                                                      .subscriptionId,
+                                              'transaction':
+                                                  profileController
+                                                      .userProfileList
+                                                      .first
+                                                      .transactioId, // Fixed typo
+                                            },
+                                          );
+                                        },
+                                        child: SizedBox(
+                                          height: 50,
+                                          child: Stack(
+                                            fit: StackFit.expand,
+                                            children: [
+                                              Shimmer.fromColors(
+                                                baseColor: AppColors.error,
+                                                highlightColor:
+                                                    AppColors.errorDark,
+                                                period: const Duration(
+                                                  seconds: 2,
+                                                ),
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          10,
+                                                        ),
+                                                    gradient:
+                                                        const LinearGradient(
+                                                          colors: [
+                                                            Color(0xFFFFC621),
+                                                            Color(0xFFF78A21),
+                                                          ],
+                                                          begin:
+                                                              Alignment
+                                                                  .centerLeft,
+                                                          end:
+                                                              Alignment
+                                                                  .centerRight,
+                                                          tileMode:
+                                                              TileMode.clamp,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Container(
+                                                padding: const EdgeInsets.all(
+                                                  12.0,
+                                                ),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons.location_pin,
+                                                          color: Colors.white,
+                                                        ),
+                                                        SizedBox(width: 10),
+                                                        Text(
+                                                          'Please Select City',
+                                                          style: TextStyle(
+                                                            color:
+                                                                AppColors.white,
+                                                            fontSize: 18,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    const Icon(
+                                                      Icons.arrow_forward,
+                                                      color: AppColors.white,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                    : SizedBox.shrink(),
+                          ),
+                          SizedBox(height: screenHeight * 0.01),
                           _buildBannerCarousel(appbannerController),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -343,6 +454,66 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }),
         bottomNavigationBar: CustomBottomBar(),
+      ),
+    );
+  }
+
+  Widget _cityButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: SizedBox(
+        height: 50,
+        child: Stack(
+          fit: StackFit.expand, // Ensure the Stack fills the SizedBox
+          children: [
+            // Shimmering background
+            Shimmer.fromColors(
+              baseColor: const Color(0xFFFFC621),
+              highlightColor: const Color(0xFFF78A21),
+              period: const Duration(seconds: 2),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFC621), Color(0xFFF78A21)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    tileMode: TileMode.clamp,
+                  ),
+                ),
+              ),
+            ),
+            // Content on top
+            Container(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      SvgPicture.asset(
+                        AppImages.crownIcon2,
+                        height: 30,
+                        width: 30,
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Start Your Leads Now',
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Icon(Icons.arrow_forward, color: AppColors.white),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

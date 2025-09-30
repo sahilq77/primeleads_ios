@@ -3,12 +3,13 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:prime_leads/model/leads/get_note_update_response.dart';
-import 'package:prime_leads/model/leads/set_reminder_response';
+
 import 'package:prime_leads/model/reminder/get_reminder_list_response.dart';
 import '../../core/network/exceptions.dart';
 import '../../core/network/networkcall.dart';
 import '../../core/urls.dart';
 import '../../model/leads/get_leads_response.dart';
+import '../../model/leads/set_reminder_response.dart';
 import '../../utility/app_colors.dart';
 import '../../utility/app_utility.dart';
 

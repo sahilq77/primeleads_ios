@@ -8,6 +8,8 @@ import 'package:prime_leads/utility/app_colors.dart';
 import 'package:prime_leads/controller/profile/profile_controller.dart';
 import 'package:prime_leads/utility/app_routes.dart';
 
+import '../../controller/subscription/set_payment_controller.dart';
+
 class PaymentReceiptDetailsScreen extends StatefulWidget {
   const PaymentReceiptDetailsScreen({super.key});
 
@@ -19,6 +21,9 @@ class PaymentReceiptDetailsScreen extends StatefulWidget {
 class _PaymentReceiptDetailsScreenState
     extends State<PaymentReceiptDetailsScreen> {
   final ProfileController profileController = Get.put(ProfileController());
+  final SetPaymentController _setPaymentController = Get.put(
+    SetPaymentController(),
+  );
   String? transactionId;
   String? subscriptionId;
   num? amount;
@@ -214,11 +219,12 @@ class _PaymentReceiptDetailsScreenState
                                   height: 50,
                                   child: ElevatedButton(
                                     onPressed: () async {
-                                      debugPrint(
-                                        '[PaymentReceiptDetailsScreen] Download button pressed',
-                                      );
+                                      //    print(_setPaymentController.subUId.value);
+                                      // debugPrint(
+                                      //   '[PaymentReceiptDetailsScreen] Download button pressed',
+                                      // );
 
-                                      // Validate arguments
+                                      // // Validate arguments
                                       if (subscriptionId == null ||
                                           transactionId == null) {
                                         debugPrint(

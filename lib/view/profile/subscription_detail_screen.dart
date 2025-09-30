@@ -7,6 +7,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../controller/bottomnavigation/bottom_navigation_controller.dart';
 import '../../controller/leads/get_leads_controller.dart';
 import '../../controller/profile/profile_controller.dart';
+import '../../controller/subscription_status/subscription_status_controller.dart';
 import '../../model/profile/get_profile_response.dart';
 import '../../utility/app_colors.dart';
 import '../../utility/app_images.dart';
@@ -19,6 +20,9 @@ class SubscriptionDetailScreen extends StatefulWidget {
 
 class _SubscriptionDetailScreen extends State<SubscriptionDetailScreen> {
   final profileController = Get.put(ProfileController());
+  final SubscriptionStatusController subsStatusController = Get.put(
+    SubscriptionStatusController(),
+  );
   final bottomController = Get.put(BottomNavigationController());
 
   int _selectedIndex =
@@ -35,6 +39,7 @@ class _SubscriptionDetailScreen extends State<SubscriptionDetailScreen> {
   @override
   void initState() {
     super.initState();
+    subsStatusController.getSubStatus(context: context);
     final arguments = Get.arguments as SubscriptionDetail;
     if (arguments != null) {
       setState(() {
@@ -76,7 +81,10 @@ class _SubscriptionDetailScreen extends State<SubscriptionDetailScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              SubscriptionCard(package: detail!),
+              SubscriptionCard(
+                package: detail!,
+                controller: subsStatusController,
+              ),
 
               SizedBox(height: 10),
               SizedBox(
@@ -124,8 +132,9 @@ class _SubscriptionDetailScreen extends State<SubscriptionDetailScreen> {
 
 class SubscriptionCard extends StatelessWidget {
   SubscriptionDetail package;
+  SubscriptionStatusController controller;
 
-  SubscriptionCard({required this.package});
+  SubscriptionCard({required this.package, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -147,23 +156,65 @@ class SubscriptionCard extends StatelessWidget {
         margin: EdgeInsets.symmetric(vertical: 8),
         child: Stack(
           children: [
-            // Positioned(
-            //   right: 20,
-            //   top: 20,
-            //   child: Container(
-            //     padding: EdgeInsets.all(4),
-            //     decoration: BoxDecoration(
-            //       shape: BoxShape.circle,
-            //       color : Colors.transparent,
-            //       border: Border.all(color: isSelected ? color : Colors.grey),
-            //     ),
-            //     child: Icon(
-            //       Icons.check,
-            //       color: isSelected ? AppColors.white : Colors.transparent,
-            //       size: 20,
-            //     ),
-            //   ),
-            // ),
+            Positioned(
+              right: 5,
+              top: 20,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                transform: Matrix4.identity()..scale(1.0),
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors:
+                        controller.subStatus.value == "0"
+                            ? [
+                              AppColors.success.withOpacity(0.9),
+                              AppColors.success.withOpacity(0.7),
+                            ]
+                            : [
+                              Colors.red.withOpacity(0.9),
+                              Colors.red.withOpacity(0.7),
+                            ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          controller.subStatus.value == "0"
+                              ? AppColors.success.withOpacity(0.3)
+                              : Colors.red.withOpacity(0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      controller.subStatus.value == "0"
+                          ? Icons.verified_rounded
+                          : Icons.cancel_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      controller.subStatus.value == "0" ? "Active" : "Expired",
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             Column(
               children: [
                 Row(
@@ -237,6 +288,7 @@ class SubscriptionCard extends StatelessWidget {
                           ),
                         ],
                       ),
+
                       // SizedBox(height: 8),
                       // Text(
                       //   "₹ ${package.amount}",

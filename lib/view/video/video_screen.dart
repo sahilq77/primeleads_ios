@@ -38,6 +38,7 @@ class _VideoListScreenState extends State<VideoListScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    videoController.fetchVideos(context: context);
   }
 
   @override
@@ -223,7 +224,15 @@ class _VideoListScreenState extends State<VideoListScreen> {
                       videoController.videoList.isEmpty) {
                     return const VideoListShimmer();
                   } else if (videoController.videoList.isEmpty) {
-                    return const NoDataScreen();
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        await videoController.refreshVideos(context);
+                      },
+                      child: SingleChildScrollView(
+                        physics: AlwaysScrollableScrollPhysics(),
+                        child: const NoDataScreen(),
+                      ),
+                    );
                   } else {
                     return RefreshIndicator(
                       onRefresh: () async {

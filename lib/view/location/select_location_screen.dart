@@ -7,6 +7,7 @@ import 'package:prime_leads/view/home/home_screen.dart';
 
 import '../../controller/location/location_controller.dart';
 import '../../controller/location/minmax_city_controller.dart';
+import '../../controller/profile/profile_controller.dart';
 import '../../controller/subscription/buy_subscription_controller.dart';
 import '../../utility/app_colors.dart';
 
@@ -25,6 +26,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
   final BuySubscriptionController buyController = Get.put(
     BuySubscriptionController(),
   );
+  final ProfileController profileController = Get.put(ProfileController());
 
   String? selectedState;
   final List<String> selectedCities = [];
@@ -33,6 +35,9 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
   void initState() {
     super.initState();
     // Listen to search input changes to trigger UI rebuild
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      profileController.fetchUserProfile(context: Get.context!);
+    });
     _searchController.addListener(() {
       setState(() {});
     });
@@ -272,14 +277,14 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                       'Selected City IDs: ${selectedCities.map((city) => controller.getCityId(city)).toList()}',
                     );
                     // Add navigation or API call here
-                    // final args = Get.arguments;
-                    // final subid = args['subscription_id'] as String;
-                    // final tranID = args['transaction'] as String;
-                    // // final subUserID = args['subscribed_user_id'] as String;
-                    // log('subscription_id: $subid');
-                    // log('transaction_id: $tranID');
+                    final args = Get.arguments;
+                    final subid = args['subscription_id'] as String;
+                    final tranID = args['transaction'] as String;
+                    // final subUserID = args['subscribed_user_id'] as String;
+                    log('subscription_id: $subid');
+                    log('transaction_id: $tranID');
                     buyController.submitSubscription(
-                      subscriptionid: "",
+                      subscriptionid: subid,
                       subscriptionUserId: "",
                       context: context,
                       stateID: controller.selectedStateId?.value,
@@ -287,7 +292,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                           selectedCities
                               .map((city) => controller.getCityId(city))
                               .toList(),
-                      transactionID: "",
+                      transactionID: tranID,
                     );
                   }
                   : null;

@@ -17,6 +17,7 @@ class SubscriptionStatusController extends GetxController {
   var errorMessager = ''.obs;
   RxBool isLoadingr = true.obs;
   RxString subStatus = "".obs;
+  RxBool firstBy = true.obs;
 
   void onInit() {
     super.onInit();
@@ -48,15 +49,17 @@ class SubscriptionStatusController extends GetxController {
         List<GetSubscriptionStatusResponse> response = List.from(list);
         if (response[0].status == "true") {
           final sub = response[0].data;
-          subStatus.value = sub.hasExpired;
+          subStatus.value = sub!.hasExpired;
           // Get.snackbar(
           //   'Success',
           //   'User deleted successfully',
           //   backgroundColor: AppColors.success,
           //   colorText: Colors.white,
           // );
-        } else {
-          errorMessager.value = response[0].message;
+        } else if (response[0].status == "false") {
+          firstBy.value = false;
+          print("status ${firstBy.value}");
+          // errorMessager.value = response[0].message;
           // Get.snackbar(
           //   'Error',
           //   response[0].message,
@@ -65,6 +68,8 @@ class SubscriptionStatusController extends GetxController {
           // );
         }
       } else {
+        firstBy.value = false;
+        print("status ${firstBy.value}");
         // errorMessager.value = 'No response from server';
         // Get.snackbar(
         //   'Error',

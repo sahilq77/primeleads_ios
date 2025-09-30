@@ -74,6 +74,8 @@ class Networkutility {
   static String checkSubscriptionStatus =
       "${baseUrl + "check_subscription_status"}";
   static int checkSubscriptionStatusApi = 34;
+  static String setOrder = "${baseUrl + "set_order"}";
+  static int setOrderApi = 35;
 }
 
 

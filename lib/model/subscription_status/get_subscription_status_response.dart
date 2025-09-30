@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final getSubscriptionStatusResponse = getSubscriptionStatusResponseFromJson(jsonString);
-
 import 'dart:convert';
 
 List<GetSubscriptionStatusResponse> getSubscriptionStatusResponseFromJson(
@@ -17,25 +13,30 @@ String getSubscriptionStatusResponseToJson(
 class GetSubscriptionStatusResponse {
   String status;
   String message;
-  Data data;
+  Data? data; // Make data nullable to handle empty array case
 
   GetSubscriptionStatusResponse({
     required this.status,
     required this.message,
-    required this.data,
+    this.data, // Allow null data
   });
 
   factory GetSubscriptionStatusResponse.fromJson(Map<String, dynamic> json) =>
       GetSubscriptionStatusResponse(
-        status: json["status"],
-        message: json["message"],
-        data: Data.fromJson(json["data"]),
+        status: json["status"] ?? "",
+        message: json["message"] ?? "",
+        data:
+            json["data"] is List
+                ? null // Handle empty array case
+                : json["data"] != null
+                ? Data.fromJson(json["data"])
+                : null,
       );
 
   Map<String, dynamic> toJson() => {
     "status": status,
     "message": message,
-    "data": data.toJson(),
+    "data": data?.toJson(),
   };
 }
 
