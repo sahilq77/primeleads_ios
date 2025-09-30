@@ -1,10 +1,14 @@
+// lib/view/reminder_notification.dart
 import 'dart:async';
 import 'dart:developer' as lg;
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:intl/intl.dart';
@@ -17,10 +21,47 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 // Top-level function for background notification handling
 @pragma('vm:entry-point')
 void backgroundNotificationHandler(NotificationResponse response) async {
-  lg.log(
-    'ReminderNotification: Background notification triggered, ID: ${response.id}, Payload: ${response.payload}, Action: ${response.actionId ?? "tap"}',
-    time: DateTime.now(),
-  );
+  try {
+    lg.log(
+      'ReminderNotification: Background notification received, payload: ${response.payload}',
+      time: DateTime.now(),
+    );
+    Vibrate.canVibrate
+        .then((canVibrate) {
+          if (canVibrate) {
+            Vibrate.vibrateWithPauses(const [
+              Duration(milliseconds: 0),
+              Duration(milliseconds: 1000),
+              Duration(milliseconds: 500),
+              Duration(milliseconds: 1000),
+            ]);
+            lg.log(
+              'ReminderNotification: Vibration triggered for background notification, ID: ${response.id}',
+              time: DateTime.now(),
+            );
+          } else {
+            lg.log(
+              'ReminderNotification: Vibration not available for background notification',
+              time: DateTime.now(),
+            );
+          }
+        })
+        .catchError((e) {
+          lg.log(
+            'ReminderNotification: Error in vibration for background notification: $e',
+            time: DateTime.now(),
+          );
+        });
+  } catch (e, stackTrace) {
+    lg.log(
+      'ReminderNotification: Error in background notification handler: $e',
+      time: DateTime.now(),
+    );
+    lg.log(
+      'ReminderNotification: Stack trace: $stackTrace',
+      time: DateTime.now(),
+    );
+  }
   if (response.payload != null &&
       response.payload!.startsWith('lead_reminder_')) {
     final leadId = int.tryParse(response.payload!.split('_').last);
@@ -60,11 +101,10 @@ class ReminderNotification {
 
   Future<void> init() async {
     lg.log(
-      'ReminderNotification: Starting initialization',
+      'ReminderNotification: Initializing notifications',
       time: DateTime.now(),
     );
     try {
-      // Initialize timezone
       tz.initializeTimeZones();
       tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
       lg.log(
@@ -83,56 +123,72 @@ class ReminderNotification {
       );
     }
 
-    // Android initialization settings
-    const AndroidInitializationSettings initializationSettingsAndroid =
+    const AndroidInitializationSettings androidInitializationSettings =
         AndroidInitializationSettings('@mipmap/launcher_icon');
-
-    // iOS initialization settings
-    const DarwinInitializationSettings initializationSettingsIOS =
+    const DarwinInitializationSettings iosInitializationSettings =
         DarwinInitializationSettings(
           requestAlertPermission: true,
           requestBadgePermission: true,
           requestSoundPermission: true,
         );
-
     const InitializationSettings initializationSettings =
         InitializationSettings(
-          android: initializationSettingsAndroid,
-          iOS: initializationSettingsIOS,
+          android: androidInitializationSettings,
+          iOS: iosInitializationSettings,
         );
 
-    // Create notification channel
-    final channel = AndroidNotificationChannel(
-      'lead_reminder_channel',
-      'Lead Reminders',
-      description: 'Channel for lead reminder notifications',
-      importance: Importance.max,
-      playSound: true,
-      enableVibration: true,
-      vibrationPattern: Int64List.fromList(const [0, 1000, 500, 1000]),
-      showBadge: true,
-      audioAttributesUsage: AudioAttributesUsage.notificationEvent,
-    );
+    // Create Android notification channel without sound
+    if (Platform.isAndroid) {
+      final androidPlugin =
+          flutterLocalNotificationsPlugin
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
+      await androidPlugin?.createNotificationChannel(
+        AndroidNotificationChannel(
+          'lead_reminder_channel',
+          'Lead Reminders',
+          description: 'Channel for lead reminder notifications',
+          importance: Importance.max,
+          playSound: false,
+          enableVibration: true,
+          vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
+          showBadge: true,
+          audioAttributesUsage: AudioAttributesUsage.notificationEvent,
+        ),
+      );
+      lg.log(
+        'ReminderNotification: Android notification channel created: lead_reminder_channel, no sound, with vibration',
+        time: DateTime.now(),
+      );
+    }
 
-    final androidPlugin =
-        flutterLocalNotificationsPlugin
-            .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin
-            >();
-    await androidPlugin?.createNotificationChannel(channel);
-    lg.log(
-      'ReminderNotification: Android notification channel created: lead_reminder_channel',
-      time: DateTime.now(),
-    );
-
-    // Initialize plugin with handlers
-    bool? initialized = await flutterLocalNotificationsPlugin.initialize(
+    await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) async {
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
         lg.log(
-          'ReminderNotification: Notification triggered (foreground or tap), ID: ${response.id}, Payload: ${response.payload}, Action: ${response.actionId ?? "tap"}',
+          'ReminderNotification: Notification tapped, payload: ${response.payload}',
           time: DateTime.now(),
         );
+        Vibrate.canVibrate.then((canVibrate) {
+          if (canVibrate) {
+            Vibrate.vibrateWithPauses(const [
+              Duration(milliseconds: 0),
+              Duration(milliseconds: 1000),
+              Duration(milliseconds: 500),
+              Duration(milliseconds: 1000),
+            ]);
+            lg.log(
+              'ReminderNotification: Vibration triggered for foreground notification, ID: ${response.id}',
+              time: DateTime.now(),
+            );
+          } else {
+            lg.log(
+              'ReminderNotification: Vibration not available for foreground notification',
+              time: DateTime.now(),
+            );
+          }
+        });
         if (response.payload != null &&
             response.payload!.startsWith('lead_reminder_')) {
           final leadId = int.tryParse(response.payload!.split('_').last);
@@ -148,48 +204,43 @@ class ReminderNotification {
             );
           }
         }
-        lg.log(
-          'ReminderNotification: Foreground handler executed successfully',
-          time: DateTime.now(),
-        );
       },
       onDidReceiveBackgroundNotificationResponse: backgroundNotificationHandler,
     );
     lg.log(
-      'ReminderNotification: Notification plugin initialized: $initialized',
+      'ReminderNotification: Notification initialization successful',
       time: DateTime.now(),
     );
 
-    // Request permissions
     if (Platform.isAndroid) {
-      final notificationGranted = await requestNotificationPermission();
-      lg.log(
-        'ReminderNotification: Notification permission granted: $notificationGranted',
-        time: DateTime.now(),
-      );
-      final exactAlarmGranted = await requestExactAlarmsPermission();
-      lg.log(
-        'ReminderNotification: Exact alarm permission granted: $exactAlarmGranted',
-        time: DateTime.now(),
-      );
-      final batteryStatus =
-          await Permission.ignoreBatteryOptimizations.request();
-      lg.log(
-        'ReminderNotification: Battery optimization exemption: ${batteryStatus.isGranted}',
-        time: DateTime.now(),
-      );
+      await requestNotificationPermission();
+      await requestExactAlarmsPermission();
     } else if (Platform.isIOS) {
-      final iosGranted = await requestIOSNotificationPermission();
-      lg.log(
-        'ReminderNotification: iOS notification permission granted: $iosGranted',
-        time: DateTime.now(),
-      );
+      await requestIOSNotificationPermission();
     }
+
+    // Check vibration capability
+    final canVibrate = await Vibrate.canVibrate;
+    lg.log(
+      'ReminderNotification: Vibration capability: $canVibrate',
+      time: DateTime.now(),
+    );
 
     // Clean old/orphaned notifications on init
     await cancelAllNotifications();
     lg.log(
       'ReminderNotification: Cleared old notifications on init',
+      time: DateTime.now(),
+    );
+
+    // Reschedule all existing reminders on app start
+    final prefs = await SharedPreferences.getInstance();
+    final String? globalReminderOption = prefs.getString(
+      'global_reminder_option',
+    );
+    await scheduleRemindersForAllBookings(globalReminderOption);
+    lg.log(
+      'ReminderNotification: Rescheduled all reminders with option: $globalReminderOption on app start',
       time: DateTime.now(),
     );
 
@@ -346,33 +397,10 @@ class ReminderNotification {
   }) async {
     try {
       lg.log(
-        'ReminderNotification: Attempting to schedule notification, ID: $id, Title: $title, Body: $body, ScheduledDate: $scheduledDate',
+        'ReminderNotification: Scheduling notification with ID: $id, Title: $title, Body: $body, ScheduledDate: $scheduledDate',
         time: DateTime.now(),
       );
 
-      // Check permissions
-      if (Platform.isAndroid) {
-        final status = await Permission.scheduleExactAlarm.request();
-        if (!status.isGranted) {
-          lg.log(
-            'ReminderNotification: SCHEDULE_EXACT_ALARM permission not granted for ID: $id',
-            time: DateTime.now(),
-          );
-          return;
-        }
-      }
-      if (Platform.isIOS) {
-        final granted = await requestIOSNotificationPermission();
-        if (!granted) {
-          lg.log(
-            'ReminderNotification: iOS notification permissions not granted for ID: $id',
-            time: DateTime.now(),
-          );
-          return;
-        }
-      }
-
-      // Validate scheduled date
       final now = DateTime.now();
       if (scheduledDate.isBefore(now.add(const Duration(seconds: 10)))) {
         lg.log(
@@ -400,7 +428,7 @@ class ReminderNotification {
             showWhen: true,
             enableVibration: true,
             vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
-            playSound: true,
+            playSound: false,
             audioAttributesUsage: AudioAttributesUsage.notificationEvent,
           );
 
@@ -408,7 +436,7 @@ class ReminderNotification {
           DarwinNotificationDetails(
             presentAlert: true,
             presentBadge: true,
-            presentSound: true,
+            presentSound: false,
           );
 
       final NotificationDetails notificationDetails = NotificationDetails(
@@ -440,9 +468,12 @@ class ReminderNotification {
       // Store the scheduled notification
       _scheduledNotifications[id] = tzScheduledDate;
       lg.log(
-        'ReminderNotification: Notification scheduled successfully: ID=$id, Date=$tzScheduledDate',
+        'ReminderNotification: Notification scheduled successfully for $tzScheduledDate with vibration (ID: $id)',
         time: DateTime.now(),
       );
+
+      // Start or restart the timer after scheduling
+      _startTimer();
 
       // Log pending notifications
       final pendingNotifications =
@@ -460,7 +491,7 @@ class ReminderNotification {
       }
     } catch (e, stackTrace) {
       lg.log(
-        'ReminderNotification: Error scheduling notification for ID: $id: $e',
+        'ReminderNotification: ERROR during scheduling for ID: $id: $e',
         time: DateTime.now(),
       );
       lg.log(
@@ -491,7 +522,7 @@ class ReminderNotification {
             showWhen: true,
             enableVibration: true,
             vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
-            playSound: true,
+            playSound: false,
             audioAttributesUsage: AudioAttributesUsage.notificationEvent,
           );
 
@@ -499,7 +530,7 @@ class ReminderNotification {
           DarwinNotificationDetails(
             presentAlert: true,
             presentBadge: true,
-            presentSound: true,
+            presentSound: false,
           );
 
       final NotificationDetails notificationDetails = NotificationDetails(
@@ -541,6 +572,7 @@ class ReminderNotification {
   // Update remaining time for all scheduled notifications
   void _updateRemainingTime() {
     final now = tz.TZDateTime.now(tz.local);
+    List<int> toRemove = [];
     _scheduledNotifications.forEach((id, scheduledDate) {
       if (scheduledDate.isAfter(now)) {
         final remainingTime = scheduledDate.difference(now);
@@ -552,13 +584,16 @@ class ReminderNotification {
           time: DateTime.now(),
         );
       } else {
-        _scheduledNotifications.remove(id);
-        lg.log(
-          'ReminderNotification: Notification ID=$id has triggered or passed and is removed from tracking',
-          time: DateTime.now(),
-        );
+        toRemove.add(id);
       }
     });
+    for (var id in toRemove) {
+      _scheduledNotifications.remove(id);
+      lg.log(
+        'ReminderNotification: Notification ID=$id has triggered or passed and is removed from tracking',
+        time: DateTime.now(),
+      );
+    }
 
     if (_scheduledNotifications.isEmpty) {
       _timer?.cancel();
@@ -624,10 +659,10 @@ class ReminderNotification {
   }
 
   // Schedule reminders for all leads with a specific reminder option
-  Future<void> scheduleRemindersForAllLeads(String? reminderOption) async {
+  Future<void> scheduleRemindersForAllBookings(String? reminderOption) async {
     try {
       lg.log(
-        'ReminderNotification: Scheduling reminders for all leads with option: $reminderOption',
+        'ReminderNotification: Scheduling reminders for all bookings with option: $reminderOption',
         time: DateTime.now(),
       );
       final reminders = await DatabaseHelper.instance.getReminders();
@@ -642,18 +677,13 @@ class ReminderNotification {
       if (reminderOption == "Don't remind") {
         for (var reminder in reminders) {
           final String leadId = reminder['lead_id']?.toString() ?? '';
-          if (leadId.isEmpty) {
+          if (leadId.isNotEmpty) {
+            await cancelNotification(int.parse(leadId));
             lg.log(
-              'ReminderNotification: Skipping reminder with empty lead_id: $reminder',
+              'ReminderNotification: Cancelled notification for lead ID: $leadId due to "Don\'t remind"',
               time: DateTime.now(),
             );
-            continue;
           }
-          await cancelNotification(int.parse(leadId));
-          lg.log(
-            'ReminderNotification: Cancelled notification for lead ID: $leadId due to "Don\'t remind"',
-            time: DateTime.now(),
-          );
         }
         lg.log(
           'ReminderNotification: All notifications cancelled due to "Don\'t remind"',
@@ -662,8 +692,49 @@ class ReminderNotification {
         return;
       }
 
-      final now = DateTime.now();
-      lg.log('ReminderNotification: Current time: $now', time: DateTime.now());
+      Duration reminderDuration;
+      bool useDefault = reminderOption == null || reminderOption.isEmpty;
+      if (useDefault) {
+        reminderDuration = const Duration(minutes: 30);
+        lg.log(
+          'ReminderNotification: Using default reminder duration: 30 minutes',
+          time: DateTime.now(),
+        );
+      } else {
+        switch (reminderOption) {
+          case '15 mins':
+            reminderDuration = const Duration(minutes: 15);
+            break;
+          case '30 mins':
+            reminderDuration = const Duration(minutes: 30);
+            break;
+          case '45 mins':
+            reminderDuration = const Duration(minutes: 45);
+            break;
+          case '60 mins':
+            reminderDuration = const Duration(minutes: 60);
+            break;
+          case '1 mins':
+            reminderDuration = const Duration(minutes: 1);
+            break;
+          default:
+            reminderDuration = const Duration(minutes: 30);
+            useDefault = true;
+            lg.log(
+              'ReminderNotification: Invalid reminder option "$reminderOption", falling back to default 30 minutes',
+              time: DateTime.now(),
+            );
+        }
+        lg.log(
+          'ReminderNotification: Global reminder option: $reminderOption',
+          time: DateTime.now(),
+        );
+      }
+
+      final DateTime now = DateTime.now();
+      final DateFormat dateFormatIndian = DateFormat('dd-MM-yyyy');
+      final DateFormat dateFormatISO = DateFormat('yyyy-MM-dd');
+
       for (var reminder in reminders) {
         try {
           final String leadId = reminder['lead_id']?.toString() ?? '';
@@ -672,9 +743,8 @@ class ReminderNotification {
               reminder['reminder_date']?.toString() ?? '';
           final String reminderTimeString =
               reminder['reminder_time']?.toString() ?? '';
-
           lg.log(
-            'ReminderNotification: Processing reminder, ID: $leadId, Name: $leadName, Date: $reminderDateString, Time: $reminderTimeString',
+            'ReminderNotification: Processing lead ID: $leadId, name: $leadName, date: "$reminderDateString", time: "$reminderTimeString"',
             time: DateTime.now(),
           );
 
@@ -682,69 +752,123 @@ class ReminderNotification {
               reminderDateString.isEmpty ||
               reminderTimeString.isEmpty) {
             lg.log(
-              'ReminderNotification: Skipping reminder with invalid data (ID: $leadId, date: "$reminderDateString", time: "$reminderTimeString")',
+              'ReminderNotification: Skipping lead with invalid data (ID: $leadId, date: "$reminderDateString", time: "$reminderTimeString")',
               time: DateTime.now(),
             );
             continue;
           }
 
-          // Parse date and time
-          DateTime reminderDateTime;
-          try {
-            final dateParts = reminderDateString.split('-');
-            if (dateParts.length != 3) {
-              lg.log(
-                'ReminderNotification: Invalid date format for lead ID: $leadId, date: $reminderDateString',
-                time: DateTime.now(),
-              );
-              continue;
-            }
-            final date = DateTime(
-              int.parse(dateParts[0]),
-              int.parse(dateParts[1]),
-              int.parse(dateParts[2]),
-            );
-            // Parse time (supports both 24-hour and 12-hour for backward compatibility)
-            reminderDateTime = _parseTimeString(reminderTimeString, date);
+          // Parse date
+          DateTime followUpDate;
+          if (RegExp(r'^\d{2}-\d{2}-\d{4}$').hasMatch(reminderDateString)) {
+            followUpDate = dateFormatIndian.parseStrict(reminderDateString);
             lg.log(
-              'ReminderNotification: Parsed reminderDateTime: $reminderDateTime for lead ID: $leadId',
+              'ReminderNotification: Parsed followUpDate (dd-MM-yyyy): $followUpDate for lead ID: $leadId',
               time: DateTime.now(),
             );
-          } catch (e) {
+          } else if (RegExp(
+            r'^\d{4}-\d{2}-\d{2}$',
+          ).hasMatch(reminderDateString)) {
+            followUpDate = dateFormatISO.parseStrict(reminderDateString);
             lg.log(
-              'ReminderNotification: Error parsing date/time for lead ID: $leadId, date: $reminderDateString, time: $reminderTimeString, error: $e',
+              'ReminderNotification: Parsed followUpDate (yyyy-MM-dd): $followUpDate for lead ID: $leadId',
+              time: DateTime.now(),
+            );
+          } else {
+            lg.log(
+              'ReminderNotification: Invalid date format "$reminderDateString" for lead ID: $leadId, skipping',
               time: DateTime.now(),
             );
             continue;
           }
 
-          if (reminderDateTime.isBefore(now.add(const Duration(seconds: 10)))) {
+          // Validate year
+          if (followUpDate.year < 2020) {
             lg.log(
-              'ReminderNotification: Reminder time $reminderDateTime is in the past or too close to now for lead ID: $leadId, skipping',
+              'ReminderNotification: Parsed year ${followUpDate.year} is too early for lead ID: $leadId, skipping',
               time: DateTime.now(),
             );
             continue;
           }
 
+          // Parse time
+          final DateTime followUpTimeParsed = _parseTimeString(
+            reminderTimeString,
+            followUpDate,
+          );
+          lg.log(
+            'ReminderNotification: Parsed followUpTime: ${followUpTimeParsed.hour}:${followUpTimeParsed.minute.toString().padLeft(2, '0')} for lead ID: $leadId',
+            time: DateTime.now(),
+          );
+
+          // Combine date and time for follow-up
+          final DateTime followUpDateTime = DateTime(
+            followUpDate.year,
+            followUpDate.month,
+            followUpDate.day,
+            followUpTimeParsed.hour,
+            followUpTimeParsed.minute,
+          );
+          lg.log(
+            'ReminderNotification: Combined followUpDateTime: $followUpDateTime for lead ID: $leadId',
+            time: DateTime.now(),
+          );
+
+          // Validate if followUpDateTime is in the future
+          if (followUpDateTime.isBefore(now)) {
+            lg.log(
+              'ReminderNotification: Follow-up time $followUpDateTime is in the past for lead ID: $leadId, skipping',
+              time: DateTime.now(),
+            );
+            continue;
+          }
+
+          // Calculate reminder time
+          final DateTime reminderTime = followUpDateTime.subtract(
+            reminderDuration,
+          );
+          lg.log(
+            'ReminderNotification: Calculated reminder time: $reminderTime for lead ID: $leadId',
+            time: DateTime.now(),
+          );
+
+          // Check if reminder time is in the future
+          if (reminderTime.isBefore(now)) {
+            lg.log(
+              'ReminderNotification: Reminder time $reminderTime is in the past for lead ID: $leadId, skipping notification',
+              time: DateTime.now(),
+            );
+            continue;
+          }
+
+          final Duration timeUntilNotification = reminderTime.difference(now);
+          lg.log(
+            'ReminderNotification: Time remaining to trigger notification: ${timeUntilNotification.inMinutes} minutes (${timeUntilNotification.inSeconds} seconds) for lead ID: $leadId at trigger time: $reminderTime',
+            time: DateTime.now(),
+          );
+
+          // Cancel existing and schedule new
           await cancelNotification(int.parse(leadId));
           lg.log(
             'ReminderNotification: Cancelled existing notification for lead ID: $leadId',
             time: DateTime.now(),
           );
 
+          final String reminderType = useDefault ? 'default' : 'custom';
           await scheduleNotification(
             id: int.parse(leadId),
             title: 'Reminder: Follow-up with $leadName',
-            body: 'Scheduled for $reminderDateString at $reminderTimeString.',
-            scheduledDate: reminderDateTime,
+            body:
+                'Your follow-up is in ${useDefault ? '30 minutes' : reminderOption} ($reminderType). Scheduled for $reminderDateString at $reminderTimeString.',
+            scheduledDate: reminderTime,
           );
           lg.log(
-            'ReminderNotification: Successfully scheduled notification for lead ID: $leadId at $reminderDateTime',
+            'ReminderNotification: Successfully scheduled $reminderType notification for lead ID: $leadId at $reminderTime',
             time: DateTime.now(),
           );
         } catch (e, stackTrace) {
           lg.log(
-            'ReminderNotification: Error processing lead ID: : $e',
+            'ReminderNotification: Error processing lead: $e',
             time: DateTime.now(),
           );
           lg.log(
@@ -753,17 +877,9 @@ class ReminderNotification {
           );
         }
       }
-
-      // Log all pending notifications after scheduling
-      final pendingNotifications =
-          await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-      lg.log(
-        'ReminderNotification: All pending notifications after scheduling: ${pendingNotifications.map((n) => "ID: ${n.id}, Payload: ${n.payload}").toList()}',
-        time: DateTime.now(),
-      );
     } catch (e, stackTrace) {
       lg.log(
-        'ReminderNotification: Error in scheduleRemindersForAllLeads: $e',
+        'ReminderNotification: Error in scheduleRemindersForAllBookings: $e',
         time: DateTime.now(),
       );
       lg.log(

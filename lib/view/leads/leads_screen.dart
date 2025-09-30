@@ -1,3 +1,4 @@
+// lib/view/leads/leads_screen.dart
 import 'dart:developer' as lg;
 
 import 'package:flutter/material.dart';
@@ -9,16 +10,17 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:prime_leads/utility/app_colors.dart';
 import 'package:prime_leads/utility/app_images.dart';
-import 'package:prime_leads/utility/app_routes.dart';
+import 'package:prime_leads/utility/nodatascreen.dart';
 import 'package:prime_leads/view/reminder_notification.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../controller/bottomnavigation/bottom_navigation_controller.dart';
 import '../../controller/leads/get_leads_controller.dart';
 import '../../controller/profile/profile_controller.dart';
 import '../../core/db_helper.dart';
-import '../../utility/nodatascreen.dart';
+import '../../utility/app_routes.dart';
 import '../bottomnavgation/bottom_navigation.dart';
 
 class LeadsScreen extends StatefulWidget {
@@ -46,12 +48,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
   @override
   void initState() {
     super.initState();
-
-    controller.refreshleadsList(context: context, showLoading: true);
-
     ReminderNotification().init();
     _requestPermissions();
-    // _loadReminders();
     _dateController.text =
         "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}";
     _reminderdateController.text =
@@ -112,31 +110,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _timeController.text = _selectedTime.format(context);
-    lg.log(
-      'LeadsScreen: Time updated: ${_timeController.text}',
-      time: DateTime.now(),
-    );
-  }
-
-  // Future<void> _loadReminders() async {
-  //   final reminders = await _dbHelper.getReminders();
-  //   setState(() {
-  //     _reminders = reminders;
-  //   });
-  //   lg.log(
-  //     'LeadsScreen: Loaded ${_reminders.length} reminders from DB',
-  //     time: DateTime.now(),
-  //   );
-  // }
-
   Future<void> _deleteReminder(int id) async {
     await _dbHelper.deleteReminder(id);
     await ReminderNotification().cancelNotification(id);
-    // _loadReminders();
     lg.log('LeadsScreen: Deleted reminder with ID: $id', time: DateTime.now());
   }
 
@@ -1049,7 +1025,13 @@ class _LeadsScreenState extends State<LeadsScreen> {
                           ),
                           value: selectedReminderOption,
                           items:
-                              ['1 mins', "Don't remind"]
+                              [
+                                    '15 mins',
+                                    '30 mins',
+                                    '45 mins',
+                                    '60 mins',
+                                    "Don't remind",
+                                  ]
                                   .map(
                                     (option) => DropdownMenuItem(
                                       value: option,
@@ -1073,7 +1055,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                             height: 50,
                             child: ElevatedButton(
                               onPressed: () async {
-                                DateTime scheduledDateTime = DateTime(
+                                DateTime followUpDateTime = DateTime(
                                   _selectedReminderDate.year,
                                   _selectedReminderDate.month,
                                   _selectedReminderDate.day,
@@ -1082,11 +1064,11 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                 );
 
                                 final now = DateTime.now();
-                                if (scheduledDateTime.isBefore(
+                                if (followUpDateTime.isBefore(
                                   now.add(const Duration(seconds: 10)),
                                 )) {
                                   lg.log(
-                                    'LeadsScreen: Invalid reminder time: $scheduledDateTime is too close to now ($now)',
+                                    'LeadsScreen: Invalid follow-up time: $followUpDateTime is too close to now ($now)',
                                     time: DateTime.now(),
                                   );
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -1156,37 +1138,22 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                   );
                                 }
 
-                                if (selectedReminderOption != "Don't remind") {
-                                  final notificationId = int.parse(id);
-                                  await ReminderNotification()
-                                      .cancelNotification(notificationId);
-                                  lg.log(
-                                    'LeadsScreen: Cancelled any existing notification for ID: $notificationId',
-                                    time: DateTime.now(),
-                                  );
-                                  await ReminderNotification().scheduleNotification(
-                                    id: notificationId,
-                                    title: 'Reminder: Follow-up with $leadName',
-                                    body:
-                                        'Scheduled for $formattedDate at $formattedTime (24-hour format).',
-                                    scheduledDate: scheduledDateTime,
-                                  );
-                                } else {
-                                  final notificationId = int.parse(id);
-                                  await ReminderNotification()
-                                      .cancelNotification(notificationId);
-                                  lg.log(
-                                    'LeadsScreen: Cancelled notification for ID: $notificationId due to "Don\'t remind"',
-                                    time: DateTime.now(),
-                                  );
-                                }
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+                                await prefs.setString(
+                                  'global_reminder_option',
+                                  selectedReminderOption ?? '30 mins',
+                                );
+                                lg.log(
+                                  'LeadsScreen: Global reminder option saved: $selectedReminderOption',
+                                  time: DateTime.now(),
+                                );
 
                                 await ReminderNotification()
-                                    .scheduleRemindersForAllLeads(
+                                    .scheduleRemindersForAllBookings(
                                       selectedReminderOption,
                                     );
 
-                                // _loadReminders();
                                 Navigator.pop(context);
                               },
                               style: ElevatedButton.styleFrom(
