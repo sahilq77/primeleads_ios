@@ -173,55 +173,36 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               _selectedIndex <
                                   controller.subcriptionsList.length
                           ? () {
-                            if (subsStatusController.subStatus.value == "0") {
+                            subsStatusController.getSubStatus(context: context);
+                            // _navigateToRazorpay();
+                            if (subsStatusController.firstBy.value == false) {
+                              _navigateToRazorpay();
+                            } else if (subsStatusController
+                                    .subStatus
+                                    .value
+                                    .isNotEmpty &&
+                                subsStatusController.subStatus.value == "0") {
                               _showThankYouDialog(
                                 context,
                                 "Your package is not expired",
-                                "",
+                                "Yo",
                               );
                             } else {
                               _navigateToRazorpay();
                             }
-                            // debugPrint(
-                            //   '[SubscriptionScreen] Pay Now clicked, checking eligibility',
-                            // );
-                            // debugPrint(
-                            //   '[SubscriptionScreen] Current subscriptionID: ${AppUtility.subscriptionID}',
-                            // );
-                            // debugPrint(
-                            //   '[SubscriptionScreen] Remaining leads: ${leadsController.remainingLeads.value}',
-                            // );
-                            // if (AppUtility.subscriptionID == "" &&
-                            //     leadsController.remainingLeads.value.isEmpty) {
-                            //   debugPrint(
-                            //     '[SubscriptionScreen] New user, no active subscription, proceeding to payment',
-                            //   );
-                            //   _navigateToRazorpay();
-                            // } else if (AppUtility.subscriptionID!.isNotEmpty &&
-                            //     leadsController.remainingLeads.value == "0") {
-                            //   debugPrint(
-                            //     '[SubscriptionScreen] Existing user with no remaining leads, proceeding to payment',
-                            //   );
-                            //   _navigateToRazorpay();
-                            // } else if (AppUtility.subscriptionID!.isNotEmpty &&
-                            //     leadsController.leadsList.isEmpty) {
-                            //   debugPrint(
-                            //     '[SubscriptionScreen] User has subscription but no leads received',
-                            //   );
+                            // if (subsStatusController
+                            //         .subStatus
+                            //         .value
+                            //         .isNotEmpty &&
+                            //     subsStatusController.subStatus.value == "0") {
                             //   _showThankYouDialog(
                             //     context,
-                            //     "Gold Package",
-                            //     "You already bought a package, but leads have not been received from admin.",
+                            //     "Your package is not expired",
+                            //     "",
                             //   );
-                            // } else {
-                            //   debugPrint(
-                            //     '[SubscriptionScreen] User has remaining leads, not eligible for new purchase',
-                            //   );
-                            //   _showThankYouDialog(
-                            //     context,
-                            //     "Gold Package",
-                            //     "Your remaining leads (${leadsController.remainingLeads.value}) are not zero. You can buy a new package after they are exhausted.",
-                            //   );
+                            // } else if (subsStatusController.firstBy.value ==
+                            //     false) {
+                            //   _navigateToRazorpay();
                             // }
                           }
                           : () {

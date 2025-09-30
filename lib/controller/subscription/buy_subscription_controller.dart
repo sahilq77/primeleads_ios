@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:prime_leads/controller/subscription/set_payment_controller.dart';
 import 'package:prime_leads/model/subscription/submit_subscription_response.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/network/exceptions.dart';
 import '../../core/network/networkcall.dart';
 import '../../core/urls.dart';
@@ -19,6 +21,9 @@ import '../profile/profile_controller.dart';
 
 class BuySubscriptionController extends GetxController {
   final ProfileController profileController = Get.put(ProfileController());
+  final SetPaymentController _setPaymentController = Get.put(
+    SetPaymentController(),
+  );
   RxBool isLoading = true.obs;
 
   void onInit() {
@@ -46,16 +51,26 @@ class BuySubscriptionController extends GetxController {
     required String? transactionID,
   }) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedSubUId = prefs.getString('subUId') ?? '';
+      print('Retrieved subUId from prefs in submit: $savedSubUId');
       final jsonBody = {
         "subscribtion_id":
-            profileController.userProfileList.first.subscriptionId,
+            subscriptionid!.isNotEmpty
+                ? subscriptionid
+                : profileController.userProfileList.first.subscriptionId,
         "user_id": AppUtility.userID,
         "subscribed_user_id":
-            profileController.userProfileList.first.subscribedUserId,
+            savedSubUId.isNotEmpty
+                ? savedSubUId
+                : profileController.userProfileList.first.subscribedUserId,
         "sector_id": AppUtility.sectorID,
         "state_id": stateID,
         "city_id": cityID,
-        "transaction_no": profileController.userProfileList.first.transactioId,
+        "transaction_no":
+            transactionID!.isNotEmpty
+                ? transactionID
+                : profileController.userProfileList.first.transactioId,
         "payment": 1.toString(), // 1=success, 0=pending
       };
 
@@ -72,6 +87,8 @@ class BuySubscriptionController extends GetxController {
         List<GetSetCitiesResponse> response = List.from(list);
         if (response[0].status == "true") {
           final user = response[0].data;
+          await prefs.remove('subUId');
+          print('subUId cleared from prefs after success');
           // AppUtility.setUserInfo(
           //   "",
           //   AppUtility.userID.toString(),
@@ -82,7 +99,7 @@ class BuySubscriptionController extends GetxController {
 
           // Show Thank You Dialog
           // _showThankYouDialog(context ?? Get.context!);
-          Get.offNamed(AppRoutes.leads);
+          Get.offAllNamed(AppRoutes.leads);
           print("set city success");
         } else {
           Get.snackbar(

@@ -17,6 +17,7 @@ class SubscriptionStatusController extends GetxController {
   var errorMessager = ''.obs;
   RxBool isLoadingr = true.obs;
   RxString subStatus = "".obs;
+  RxBool firstBy = true.obs;
 
   void onInit() {
     super.onInit();
@@ -55,8 +56,10 @@ class SubscriptionStatusController extends GetxController {
           //   backgroundColor: AppColors.success,
           //   colorText: Colors.white,
           // );
-        } else {
-          errorMessager.value = response[0].message;
+        } else if (response[0].status == "false") {
+          firstBy.value = false;
+          print("status ${firstBy.value}");
+          // errorMessager.value = response[0].message;
           // Get.snackbar(
           //   'Error',
           //   response[0].message,
@@ -65,6 +68,8 @@ class SubscriptionStatusController extends GetxController {
           // );
         }
       } else {
+        firstBy.value = false;
+        print("status ${firstBy.value}");
         // errorMessager.value = 'No response from server';
         // Get.snackbar(
         //   'Error',

@@ -544,6 +544,103 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 ),
               ),
             ),
+            // Obx(
+            //   () => Padding(
+            //     padding: const EdgeInsets.symmetric(
+            //       horizontal: 10.0,
+            //       vertical: 5,
+            //     ),
+            //     child: Row(
+            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //       children: [
+            //         Expanded(
+            //           child: SizedBox(
+            //             width: double.infinity,
+            //             child: Card(
+            //               shape: RoundedRectangleBorder(
+            //                 borderRadius: BorderRadius.circular(5),
+            //                 side: const BorderSide(
+            //                   color: AppColors.borderColor,
+            //                 ),
+            //               ),
+            //               color: const Color(0xFFF5F5F5),
+            //               elevation: 1,
+            //               child: Padding(
+            //                 padding: EdgeInsets.all(10.0),
+            //                 child: Row(
+            //                   mainAxisSize: MainAxisSize.min,
+            //                   crossAxisAlignment: CrossAxisAlignment.center,
+            //                   mainAxisAlignment: MainAxisAlignment.center,
+            //                   children: [
+            //                     Text(
+            //                       controller.remainingLeads.toString() ?? "0",
+            //                       style: TextStyle(
+            //                         fontSize: 16,
+            //                         fontWeight: FontWeight.w700,
+            //                         color: AppColors.primaryTeal,
+            //                       ),
+            //                     ),
+            //                     SizedBox(width: 8.0),
+            //                     Text(
+            //                       "Received Leads",
+            //                       style: TextStyle(
+            //                         fontSize: 14,
+            //                         fontWeight: FontWeight.w500,
+            //                         color: Colors.black87,
+            //                       ),
+            //                     ),
+            //                   ],
+            //                 ),
+            //               ),
+            //             ),
+            //           ),
+            //         ),
+            //         Expanded(
+            //           child: SizedBox(
+            //             width: double.infinity,
+            //             child: Card(
+            //               shape: RoundedRectangleBorder(
+            //                 borderRadius: BorderRadius.circular(5),
+            //                 side: const BorderSide(
+            //                   color: AppColors.borderColor,
+            //                 ),
+            //               ),
+            //               color: const Color(0xFFF5F5F5),
+            //               elevation: 1,
+            //               child: Padding(
+            //                 padding: EdgeInsets.all(10.0),
+            //                 child: Row(
+            //                   mainAxisSize: MainAxisSize.min,
+            //                   crossAxisAlignment: CrossAxisAlignment.center,
+            //                   mainAxisAlignment: MainAxisAlignment.center,
+            //                   children: [
+            //                     Text(
+            //                       controller.remainingLeads.toString() ?? "0",
+            //                       style: TextStyle(
+            //                         fontSize: 16,
+            //                         fontWeight: FontWeight.w700,
+            //                         color: AppColors.primary,
+            //                       ),
+            //                     ),
+            //                     SizedBox(width: 8.0),
+            //                     Text(
+            //                       "Total Leads",
+            //                       style: TextStyle(
+            //                         fontSize: 14,
+            //                         fontWeight: FontWeight.w500,
+            //                         color: Colors.black87,
+            //                       ),
+            //                     ),
+            //                   ],
+            //                 ),
+            //               ),
+            //             ),
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.01),
             Expanded(
               child: RefreshIndicator(
@@ -567,6 +664,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                     ? 1
                                     : 0),
                     itemBuilder: (context, int index) {
+                      print("legnth: ${controller.leadsList.length}");
                       if (controller.leadsList.isEmpty) {
                         return NoDataScreen();
                       }

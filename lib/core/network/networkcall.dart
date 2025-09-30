@@ -19,7 +19,8 @@ import '../../model/global_model/get_state_response.dart';
 import '../../model/leads/get_lead_detail_response.dart';
 import '../../model/leads/get_leads_response.dart';
 import '../../model/leads/get_note_update_response.dart';
-import '../../model/leads/set_reminder_response';
+
+import '../../model/leads/set_reminder_response.dart';
 import '../../model/location/get_location_response.dart';
 import '../../model/location/get_min_max_city_response.dart';
 import '../../model/login/get_login_response.dart';

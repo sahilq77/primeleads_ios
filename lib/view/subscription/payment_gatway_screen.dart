@@ -36,20 +36,29 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
 
   String transactionId = "RT${DateTime.now().millisecondsSinceEpoch}";
 
+  // StringBuffer to collect all logs
+  final StringBuffer _logBuffer = StringBuffer();
+
   @override
   void initState() {
     super.initState();
-    debugPrint('[RazorpayGateway] Initializing with:');
-    debugPrint('[RazorpayGateway] totalPayable: ${widget.totalPayable}');
-    debugPrint('[RazorpayGateway] subscriptionId: ${widget.subscriptionId}');
-    debugPrint('[RazorpayGateway] finalOrderPrice: ${widget.finalOrderPrice}');
-    debugPrint('[RazorpayGateway] transactionId: $transactionId');
+    _log('[RazorpayGateway] Initializing with:');
+    _log('[RazorpayGateway] totalPayable: ${widget.totalPayable}');
+    _log('[RazorpayGateway] subscriptionId: ${widget.subscriptionId}');
+    _log('[RazorpayGateway] finalOrderPrice: ${widget.finalOrderPrice}');
+    _log('[RazorpayGateway] transactionId: $transactionId');
     _initializeRazorpay();
     _createOrder();
   }
 
+  // Helper method to log to both debugPrint and StringBuffer
+  void _log(String message) {
+    debugPrint(message);
+    _logBuffer.writeln('${DateTime.now().toIso8601String()}: $message');
+  }
+
   void _initializeRazorpay() {
-    debugPrint('[RazorpayGateway] Initializing Razorpay');
+    _log('[RazorpayGateway] Initializing Razorpay');
     _razorpay = Razorpay();
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
@@ -60,7 +69,7 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
     try {
       // Validate amount
       if (widget.finalOrderPrice < 1) {
-        debugPrint(
+        _log(
           '[RazorpayGateway] Error: finalOrderPrice (${widget.finalOrderPrice}) is less than minimum allowed (₹1.00)',
         );
         _showErrorSnackBar('Invalid amount: Minimum ₹1.00 required');
@@ -68,10 +77,10 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
       }
 
       final authString = base64Encode(utf8.encode('$_keyId:$_keySecret'));
-      debugPrint('[RazorpayGateway] Auth String: $authString');
+      _log('[RazorpayGateway] Auth String: $authString');
 
       final amountInPaise = (widget.finalOrderPrice * 100).toInt();
-      debugPrint(
+      _log(
         '[RazorpayGateway] Sending amount to Razorpay: $amountInPaise paise (₹${widget.finalOrderPrice})',
       );
 
@@ -89,30 +98,34 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
         }),
       );
 
-      debugPrint(
-        '[RazorpayGateway] Response Status Code: ${response.statusCode}',
+      _log(
+        '[RazorpayGateway] Order Creation Response Status Code: ${response.statusCode}',
       );
-      debugPrint('[RazorpayGateway] Response Body: ${response.body}');
+      _log(
+        '[RazorpayGateway] Order Creation Response Headers: ${response.headers}',
+      );
+      _log('[RazorpayGateway] Order Creation Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final orderData = jsonDecode(response.body);
-        debugPrint(
+        _log(
           '[RazorpayGateway] Order created successfully: ${orderData['id']}',
         );
+        _log('[RazorpayGateway] Full Order Data: $orderData');
         _openCheckout(orderData['id']);
       } else {
-        debugPrint('[RazorpayGateway] Order creation failed: ${response.body}');
+        _log('[RazorpayGateway] Order creation failed: ${response.body}');
         _showErrorSnackBar('Order creation failed: ${response.body}');
       }
     } catch (e) {
-      debugPrint('[RazorpayGateway] Error creating order: $e');
+      _log('[RazorpayGateway] Error creating order: $e');
       _showErrorSnackBar('Error creating order: $e');
     }
   }
 
   void _openCheckout(String orderId) {
     final amountInPaise = (widget.finalOrderPrice * 100).toInt();
-    debugPrint(
+    _log(
       '[RazorpayGateway] Opening checkout with orderId: $orderId, amount: $amountInPaise paise',
     );
 
@@ -126,43 +139,57 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
       'theme': {'color': '#00A89F'},
     };
 
+    _log('[RazorpayGateway] Checkout Options: $options');
+
     try {
       _razorpay.open(options);
-      debugPrint('[RazorpayGateway] Razorpay checkout opened');
+      _log('[RazorpayGateway] Razorpay checkout opened');
     } catch (e) {
-      debugPrint('[RazorpayGateway] Error opening Razorpay checkout: $e');
+      _log('[RazorpayGateway] Error opening Razorpay checkout: $e');
       _showErrorSnackBar('Error opening checkout: $e');
     }
   }
 
   Future<bool> _callSetPaymentApi(String paymentStatus) async {
     try {
+      _log('[RazorpayGateway] Calling setPayment API with:');
+      _log('[RazorpayGateway] subscriptionId: ${widget.subscriptionId}');
+      _log('[RazorpayGateway] paymentStatus: $paymentStatus');
+      _log('[RazorpayGateway] transactionId: $transactionId');
+
       await _setPaymentController.setPayment(
         context: context,
         subscriptionid: widget.subscriptionId,
         paymentStaus: paymentStatus,
         transactionID: transactionId,
       );
-      // Check if the API call was successful by inspecting isLoading
+
+      _log(
+        '[RazorpayGateway] setPayment API call completed. isLoading: ${_setPaymentController.isLoading.value}',
+      );
+
       return !_setPaymentController.isLoading.value;
     } catch (e) {
-      debugPrint('[RazorpayGateway] Error in setPayment API: $e');
+      _log('[RazorpayGateway] Error in setPayment API: $e');
       _showErrorSnackBar('Failed to update payment status: $e');
       return false;
     }
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
-    debugPrint('[RazorpayGateway] Payment Success: ${response.paymentId}');
-    debugPrint('[RazorpayGateway] Calling setPayment API with:');
-    debugPrint('[RazorpayGateway] transactionId: $transactionId');
-    debugPrint('[RazorpayGateway] subscriptionId: ${widget.subscriptionId}');
-    debugPrint('[RazorpayGateway] paymentStatus: 1');
+    _log('[RazorpayGateway] Payment Success Response:');
+    _log('[RazorpayGateway]   paymentId: ${response.paymentId}');
+    _log('[RazorpayGateway]   orderId: ${response.orderId}');
+    _log('[RazorpayGateway]   signature: ${response.signature}');
+    _log('[RazorpayGateway] Full Success Response: ${response.data}');
 
-    // Call setPayment API with paymentStatus "1" (success)
+    _log('[RazorpayGateway] Calling setPayment API with:');
+    _log('[RazorpayGateway] transactionId: $transactionId');
+    _log('[RazorpayGateway] subscriptionId: ${widget.subscriptionId}');
+    _log('[RazorpayGateway] paymentStatus: 1');
+
     bool apiSuccess = await _callSetPaymentApi("1");
 
-    // Navigate to payment receipt regardless of setPayment API success to ensure user sees receipt
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Get.offNamed(
         AppRoutes.paymentRieceipt,
@@ -176,7 +203,7 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
     });
 
     if (!apiSuccess) {
-      debugPrint(
+      _log(
         '[RazorpayGateway] setPayment API call failed, but navigating to receipt',
       );
       _showErrorSnackBar(
@@ -186,22 +213,21 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
   }
 
   void _handlePaymentError(PaymentFailureResponse response) async {
-    debugPrint(
-      '[RazorpayGateway] Payment Error: ${response.code} | ${response.message}',
-    );
-    // Call setPayment API with paymentStatus "0" (failed/canceled)
+    _log('[RazorpayGateway] Payment Error Response:');
+    _log('[RazorpayGateway]   code: ${response.code}');
+    _log('[RazorpayGateway]   message: ${response.message}');
+    _log('[RazorpayGateway] Full Error Response: ${response.error}');
+
     await _callSetPaymentApi("0");
     _showErrorSnackBar(response.message ?? "Payment failed");
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
-    debugPrint(
-      '[RazorpayGateway] External Wallet Selected: ${response.walletName}',
-    );
+    _log('[RazorpayGateway] External Wallet Selected: ${response.walletName}');
   }
 
   void _showErrorSnackBar(String message) {
-    debugPrint('[RazorpayGateway] Showing error snackbar: $message');
+    _log('[RazorpayGateway] Showing error snackbar: $message');
     Get.snackbar(
       'Payment Error',
       message,
@@ -213,10 +239,17 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
     Navigator.of(context).pop();
   }
 
+  // Method to retrieve full logs
+  String getFullLogs() {
+    return _logBuffer.toString();
+  }
+
   @override
   void dispose() {
-    debugPrint('[RazorpayGateway] Disposing RazorpayGateway');
+    _log('[RazorpayGateway] Disposing RazorpayGateway');
     _razorpay.clear();
+    // Optionally, save logs to a file or display them
+    debugPrint('[RazorpayGateway] Full Logs:\n${getFullLogs()}');
     super.dispose();
   }
 
@@ -225,23 +258,38 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
     return Obx(
       () => Scaffold(
         body: Center(
-          child: _setPaymentController.isLoading.value
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 20),
-                    Text('Processing Payment...'),
-                  ],
-                )
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 20),
-                    Text('Initiating Payment...'),
-                  ],
-                ),
+          child:
+              _setPaymentController.isLoading.value
+                  ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 20),
+                      Text('Processing Payment...'),
+                    ],
+                  )
+                  : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 20),
+                      const Text('Initiating Payment...'),
+                      const SizedBox(height: 20),
+                      // Button to display full logs (for testing)
+                      ElevatedButton(
+                        onPressed: () {
+                          Get.snackbar(
+                            'Payment Logs',
+                            getFullLogs(),
+                            duration: const Duration(seconds: 10),
+                            snackPosition: SnackPosition.TOP,
+                            maxWidth: MediaQuery.of(context).size.width * 0.9,
+                          );
+                        },
+                        child: const Text('Show Full Logs'),
+                      ),
+                    ],
+                  ),
         ),
       ),
     );
