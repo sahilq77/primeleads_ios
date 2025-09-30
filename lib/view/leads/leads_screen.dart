@@ -554,7 +554,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  controller.remainingLeads.value.toString() ?? "0",
+                                  controller.recivedLeads.value.toString() ??
+                                      "0",
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
