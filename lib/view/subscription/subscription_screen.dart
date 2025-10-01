@@ -186,52 +186,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               _showThankYouDialog(
                                 context,
                                 "Your package is not expired",
-                                "",
+                                "After it expires, you can buy a new package anytime.",
                               );
                             } else {
                               _navigateToRazorpay();
                             }
-                            // debugPrint(
-                            //   '[SubscriptionScreen] Pay Now clicked, checking eligibility',
-                            // );
-                            // debugPrint(
-                            //   '[SubscriptionScreen] Current subscriptionID: ${AppUtility.subscriptionID}',
-                            // );
-                            // debugPrint(
-                            //   '[SubscriptionScreen] Remaining leads: ${leadsController.remainingLeads.value}',
-                            // );
-                            // if (AppUtility.subscriptionID == "" &&
-                            //     leadsController.remainingLeads.value.isEmpty) {
-                            //   debugPrint(
-                            //     '[SubscriptionScreen] New user, no active subscription, proceeding to payment',
-                            //   );
-                            //   _navigateToRazorpay();
-                            // } else if (AppUtility.subscriptionID!.isNotEmpty &&
-                            //     leadsController.remainingLeads.value == "0") {
-                            //   debugPrint(
-                            //     '[SubscriptionScreen] Existing user with no remaining leads, proceeding to payment',
-                            //   );
-                            //   _navigateToRazorpay();
-                            // } else if (AppUtility.subscriptionID!.isNotEmpty &&
-                            //     leadsController.leadsList.isEmpty) {
-                            //   debugPrint(
-                            //     '[SubscriptionScreen] User has subscription but no leads received',
-                            //   );
-                            //   _showThankYouDialog(
-                            //     context,
-                            //     "Gold Package",
-                            //     "You already bought a package, but leads have not been received from admin.",
-                            //   );
-                            // } else {
-                            //   debugPrint(
-                            //     '[SubscriptionScreen] User has remaining leads, not eligible for new purchase',
-                            //   );
-                            //   _showThankYouDialog(
-                            //     context,
-                            //     "Gold Package",
-                            //     "Your remaining leads (${leadsController.remainingLeads.value}) are not zero. You can buy a new package after they are exhausted.",
-                            //   );
-                            // }
                           }
                           : () {
                             debugPrint(
