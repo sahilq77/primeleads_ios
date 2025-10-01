@@ -22,6 +22,11 @@
             </div>
         </div>
 
+        <!-- Logout Button -->
+        <div id="logout-section" class="mb-4 hidden">
+            <button onclick="logout()" class="bg-red-500 text-white px-4 py-2">Logout</button>
+        </div>
+
         <!-- Portfolio Form -->
         <div id="portfolio-form" class="mb-8 hidden">
             <h2 class="text-xl font-semibold mb-2">Add Portfolio Item</h2>
@@ -54,12 +59,30 @@
 
             if (result.success) {
                 document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('logout-section').classList.remove('hidden');
                 document.getElementById('portfolio-form').classList.remove('hidden');
                 document.getElementById('portfolio-list').classList.remove('hidden');
                 getPortfolio();
             } else {
                 alert(result.message);
             }
+        }
+
+        async function logout() {
+            const response = await fetch('admin_api.php?action=logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('logout-section').classList.add('hidden');
+                document.getElementById('portfolio-form').classList.add('hidden');
+                document.getElementById('portfolio-list').classList.add('hidden');
+                document.getElementById('portfolio-items').innerHTML = '';
+            }
+            alert(result.message);
         }
 
         async function addPortfolio() {
@@ -152,6 +175,8 @@
                     `;
                     itemsDiv.appendChild(div);
                 });
+            } else {
+                alert(result.message);
             }
         }
     </script>

@@ -1,4 +1,5 @@
 <?php
+session_start();
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE");
@@ -33,6 +34,8 @@ switch($action) {
             $admin = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if($admin && password_verify($password, $admin['password'])) {
+                $_SESSION['admin_id'] = $admin['id'];
+                $_SESSION['admin_email'] = $admin['email'];
                 echo json_encode([
                     'success' => true,
                     'admin' => ['id' => $admin['id'], 'email' => $admin['email']]
@@ -43,8 +46,19 @@ switch($action) {
         }
         break;
 
-    case 'add_portfolio':
+    case 'logout':
         if($method === 'POST') {
+            session_unset();
+            session_destroy();
+            echo json_encode([
+                'success' => true,
+                'message' => 'Logged out successfully'
+            ]);
+        }
+        break;
+
+    case 'add_portfolio':
+        if($method === 'POST' && isset($_SESSION['admin_id'])) {
             $data = json_decode(file_get_contents("php://input"), true);
             $title = $data['title'] ?? '';
             $description = $data['description'] ?? '';
@@ -69,11 +83,13 @@ switch($action) {
             } else {
                 echo json_encode(['success' => false, 'message' => 'Missing required fields']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
         }
         break;
 
     case 'update_portfolio':
-        if($method === 'POST') {
+        if($method === 'POST' && isset($_SESSION['admin_id'])) {
             $data = json_decode(file_get_contents("php://input"), true);
             $id = $data['id'] ?? 0;
             $title = $data['title'] ?? '';
@@ -120,11 +136,13 @@ switch($action) {
             } else {
                 echo json_encode(['success' => false, 'message' => 'Missing required fields']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
         }
         break;
 
     case 'delete_portfolio':
-        if($method === 'DELETE') {
+        if($method === 'DELETE' && isset($_SESSION['admin_id'])) {
             $data = json_decode(file_get_contents("php://input"), true);
             $id = $data['id'] ?? 0;
             
@@ -144,11 +162,13 @@ switch($action) {
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to delete image']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
         }
         break;
 
     case 'get_portfolio':
-        if($method === 'GET') {
+        if($method === 'GET' && isset($_SESSION['admin_id'])) {
             $stmt = $pdo->prepare("SELECT id, title, description, image_path FROM portfolio ORDER BY id DESC");
             $stmt->execute();
             $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -163,6 +183,8 @@ switch($action) {
                 'success' => true,
                 'data' => $items
             ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
         }
         break;
 
